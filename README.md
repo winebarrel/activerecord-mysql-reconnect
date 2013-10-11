@@ -32,6 +32,7 @@ ActiveRecord::Base.establish_connection(
 )
 
 ActiveRecord::Base.logger = Logger.new($stdout)
+ActiveRecord::Base.logger.formatter = proc {|_, _, _, message| "#{message}\n" }
 ActiveRecord::Base.execution_tries = 3
 
 class Employee < ActiveRecord::Base; end
@@ -43,13 +44,13 @@ p Employee.count
 
 ```
 shell> ruby test.rb
-D, [2013-10-11T08:48:16.792176 #16191] DEBUG -- :    (65.7ms)  SELECT COUNT(*) FROM `employees`
+   (64.1ms)  SELECT COUNT(*) FROM `employees`
 300024
 Stopping mysqld:                                           [  OK  ]
 Starting mysqld:                                           [  OK  ]
-D, [2013-10-11T08:48:22.986682 #16191] DEBUG -- :    (0.4ms)  SELECT COUNT(*) FROM `employees`
-D, [2013-10-11T08:48:22.986897 #16191] DEBUG -- : Mysql2::Error: MySQL server has gone away: SELECT COUNT(*) FROM `employees`
-W, [2013-10-11T08:48:22.987166 #16191]  WARN -- : MySQL server has gone away. Trying to reconnect in 0.5 seconds.
-D, [2013-10-11T08:48:23.588412 #16191] DEBUG -- :    (99.4ms)  SELECT COUNT(*) FROM `employees`
+   (0.4ms)  SELECT COUNT(*) FROM `employees`
+Mysql2::Error: MySQL server has gone away: SELECT COUNT(*) FROM `employees`
+MySQL server has gone away. Trying to reconnect in 0.5 seconds.
+   (101.5ms)  SELECT COUNT(*) FROM `employees`
 300024
 ```
