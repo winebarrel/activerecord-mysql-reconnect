@@ -54,3 +54,7 @@ MySQL server has gone away. Trying to reconnect in 0.5 seconds.
    (101.5ms)  SELECT COUNT(*) FROM `employees`
 300024
 ```
+
+## Link
+
+* [RubyGems.org site](http://rubygems.org/gems/activerecord-mysql-reconnect)
