@@ -1,10 +1,15 @@
 require 'activerecord/mysql/reconnect'
+require 'mysql2'
 
 class Employee < ActiveRecord::Base; end
 
 def mysql_restart
   cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART'] || 'sudo /etc/init.d/mysql restart'
   system(cmd)
+end
+
+class Mysql2::Client
+  def escape(str); str; end
 end
 
 RSpec.configure do |config|
