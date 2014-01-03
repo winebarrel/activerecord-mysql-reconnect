@@ -6,9 +6,23 @@ require 'logger'
 class ActiveRecord::Base
   class_attribute :execution_tries
   class_attribute :execution_retry_wait
+
+  class << self
+    def without_retry
+      begin
+        Thread.current[ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::WITHOUT_RETRY_KEY] = true
+        yield
+      ensure
+        Thread.current[ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::WITHOUT_RETRY_KEY] = nil
+      end
+    end
+  end
 end
 
 class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
+  DEFAULT_EXECUTION_TRIES = 3
+  DEFAULT_EXECUTION_RETRY_WAIT = 0.5
+
   ERROR_MESSAGES = [
     'MySQL server has gone away',
     'Server shutdown in progress',
@@ -17,8 +31,8 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
     'Query execution was interrupted',
   ]
 
-  DEFAULT_EXECUTION_TRIES = 3
-  DEFAULT_EXECUTION_RETRY_WAIT = 0.5
+  WITHOUT_RETRY_KEY = 'activerecord-mysql-reconnect-without-retry'
+  TRANSACTION_RETRY_KEY = 'activerecord-mysql-reconnect-transaction-retry'
 
   def execute_with_reconnect(sql, name = nil)
     retryable do
@@ -41,7 +55,7 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
         retval = (block_with_reconnect || block).call
         break
       rescue => e
-        if (tries.zero? or n < tries) and e.message =~ Regexp.union(ERROR_MESSAGES)
+        if not without_retry? and (tries.zero? or n < tries) and e.message =~ Regexp.union(ERROR_MESSAGES)
           unless block_with_reconnect
             block_with_reconnect = proc { reconnect! ; block.call }
           end
@@ -66,5 +80,9 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
     else
       n.times {|i| yield(i + 1) }
     end
+  end
+
+  def without_retry?
+    !!Thread.current[WITHOUT_RETRY_KEY]
   end
 end

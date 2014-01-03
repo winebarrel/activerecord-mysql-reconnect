@@ -59,4 +59,14 @@ describe Hash do
       th.join
     }.to_not raise_error
   end
+
+  it 'without retry' do
+    expect {
+      ActiveRecord::Base.without_retry do
+        Employee.count
+        mysql_restart
+        Employee.count
+      end
+    }.to raise_error(ActiveRecord::StatementInvalid)
+  end
 end
