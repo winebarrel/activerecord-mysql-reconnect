@@ -70,6 +70,7 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
     block_with_reconnect = nil
     retval = nil
     sql_names = [[sql, name]]
+    orig_transaction = @transaction
 
     retryable_loop(tries) do |n|
       begin
@@ -78,7 +79,11 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
       rescue ActiveRecord::StatementInvalid, Mysql2::Error => e
         if not without_retry? and (tries.zero? or n < tries) and e.message =~ Regexp.union(ERROR_MESSAGES)
           unless block_with_reconnect
-            block_with_reconnect = proc {|i| reconnect! ; block.call(i) }
+            block_with_reconnect = proc do |i|
+              reconnect!
+              @transaction = orig_transaction if orig_transaction
+              block.call(i)
+            end
           end
 
           sql_names = merge_transaction(sql, name)

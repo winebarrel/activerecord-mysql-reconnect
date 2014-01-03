@@ -1,4 +1,4 @@
-describe Hash do
+describe 'activerecord-mysql-reconnect' do
   it 'select all' do
     expect {
       expect(Employee.all.length).to eq(300024)
