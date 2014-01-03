@@ -8,8 +8,10 @@ describe Hash do
   end
 
   it 'count' do
-    expect(Employee.count).to eq(300024)
-    mysql_restart
-    expect(Employee.count).to eq(300024)
+    expect {
+      expect(Employee.count).to eq(300024)
+      mysql_restart
+      expect(Employee.count).to eq(300024)
+    }.to_not raise_error
   end
 end
