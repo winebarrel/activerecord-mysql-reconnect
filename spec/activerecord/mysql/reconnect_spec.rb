@@ -29,7 +29,7 @@ describe Hash do
       sleep 3
       expect(thread_running).to be_true
       mysql_restart
-      expect(Employee.count).to eq(300024)
+      expect(Employee.count).to be >= 300024
       th.join
     }.to_not raise_error
   end
@@ -48,14 +48,14 @@ describe Hash do
                 :hire_date  => Time.now
               )
         thread_running = false
-        expect(emp.id).to eq(327676)
+        expect(emp.id).to eq(300025)
       }
 
       th.abort_on_exception = true
       sleep 3
       expect(thread_running).to be_true
       mysql_restart
-      expect(Employee.count).to eq(300024)
+      expect(Employee.count).to be >= 300024
       th.join
     }.to_not raise_error
   end
@@ -78,7 +78,7 @@ describe Hash do
         Employee.create(
           :emp_no     => 1,
           :birth_date => Time.now,
-          :first_name => "Scott",
+          :first_name => 'Scott',
           :last_name  => 'Tiger',
           :hire_date  => Time.now
         )
@@ -86,7 +86,7 @@ describe Hash do
         Employee.create(
           :emp_no     => 2,
           :birth_date => Time.now,
-          :first_name => "Scott",
+          :first_name => 'Scott',
           :last_name  => 'Tiger',
           :hire_date  => Time.now
         )
