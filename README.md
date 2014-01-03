@@ -22,8 +22,6 @@ Or install it yourself as:
 ## Usage
 
 ```ruby
-#!/usr/bin/env ruby
-require 'active_record'
 require 'activerecord/mysql/reconnect'
 require 'logger'
 
@@ -31,7 +29,7 @@ ActiveRecord::Base.establish_connection(
   adapter:  'mysql2',
   host:     '127.0.0.1',
   username: 'root',
-  database: 'test',
+  database: 'employees',
 )
 
 ActiveRecord::Base.logger = Logger.new($stdout)
@@ -57,7 +55,3 @@ MySQL server has gone away. Trying to reconnect in 0.5 seconds.
    (101.5ms)  SELECT COUNT(*) FROM `employees`
 300024
 ```
-
-## Link
-
-* [RubyGems.org site](http://rubygems.org/gems/activerecord-mysql-reconnect)
