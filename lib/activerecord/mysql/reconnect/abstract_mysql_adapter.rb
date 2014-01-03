@@ -62,7 +62,7 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
 
   def retryable_loop(n)
     if n.zero?
-      loop { n += 1; yield(n) }
+      loop { n += 1 ; yield(n) }
     else
       n.times {|i| yield(i + 1) }
     end
