@@ -61,6 +61,31 @@ describe Hash do
     }.to_not raise_error
   end
 
+  it 'op update' do
+    expect {
+      thread_running = false
+
+      th = Thread.start {
+        thread_running = true
+        emp = Employee.where(:id => 1).first
+        emp.first_name = "' + sleep(15) + '"
+        emp.last_name = 'ZapZapZap'
+        emp.save!
+        thread_running = false
+
+        emp = Employee.where(:id => 1).first
+        expect(emp.last_name).to eq('ZapZapZap')
+      }
+
+      th.abort_on_exception = true
+      sleep 3
+      expect(thread_running).to be_true
+      mysql_restart
+      expect(Employee.count).to eq(300024)
+      th.join
+    }.to_not raise_error
+  end
+
   it 'without_retry' do
     expect {
       ActiveRecord::Base.without_retry do
