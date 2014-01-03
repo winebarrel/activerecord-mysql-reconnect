@@ -1,5 +1,5 @@
 describe Hash do
-  it 'example' do
-    expect(1).to eq(1)
+  it 'activerecord-mysql-reconnect' do
+    p Employee.count
   end
 end
