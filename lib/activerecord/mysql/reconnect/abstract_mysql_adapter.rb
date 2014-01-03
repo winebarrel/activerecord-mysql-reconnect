@@ -14,6 +14,7 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
     'Server shutdown in progress',
     'closed MySQL connection',
     "Can't connect to MySQL server",
+    'Query execution was interrupted',
   ]
 
   DEFAULT_EXECUTION_TRIES = 3
@@ -35,16 +36,20 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
     block_with_reconnect = nil
     retval = nil
 
-    tries.times do |n|
+    retryable_loop(tries) do |n|
       begin
         retval = (block_with_reconnect || block).call
         break
       rescue => e
-        if (n + 1) < tries and e.message =~ Regexp.union(ERROR_MESSAGES)
-          block_with_reconnect = proc { reconnect! ; block.call } unless block_with_reconnect
-          wait = (ActiveRecord::Base.execution_retry_wait || DEFAULT_EXECUTION_RETRY_WAIT) * (n + 1)
+        if (tries.zero? or n < tries) and e.message =~ Regexp.union(ERROR_MESSAGES)
+          unless block_with_reconnect
+            block_with_reconnect = proc { reconnect! ; block.call }
+          end
+
+          wait = (ActiveRecord::Base.execution_retry_wait || DEFAULT_EXECUTION_RETRY_WAIT) * n
           logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds.")
           sleep(wait)
+
           next
         else
           raise e
@@ -53,5 +58,13 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
     end
 
     return retval
+  end
+
+  def retryable_loop(n)
+    if n.zero?
+      loop { n += 1; yield(n) }
+    else
+      n.times {|i| yield(i + 1) }
+    end
   end
 end
