@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Genki Sugawara"]
   spec.email         = ["sugawara@cookpad.com"]
   spec.description   = %q{It is the library to reconnect automatically when ActiveRecord is disconnected from MySQL.}
-  spec.summary       = %q{It is the library to reconnect automatically when ActiveRecord is disconnected from MySQL.}
+  spec.summary       = spec.description
   spec.homepage      = "https://bitbucket.org/winebarrel/activerecord-mysql-reconnect"
   spec.license       = "MIT"
 

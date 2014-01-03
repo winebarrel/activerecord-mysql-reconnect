@@ -1,4 +1,4 @@
-# Activerecord::Mysql::Reconnect
+# activerecord-mysql-reconnect
 
 It is the library to reconnect automatically when ActiveRecord is disconnected from MySQL.
 
