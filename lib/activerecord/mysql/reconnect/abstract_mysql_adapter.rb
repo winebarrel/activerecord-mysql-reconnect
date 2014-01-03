@@ -47,7 +47,7 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
           end
 
           wait = (ActiveRecord::Base.execution_retry_wait || DEFAULT_EXECUTION_RETRY_WAIT) * n
-          logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds.")
+          logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds. (cause: #{e} [#{e.class}])")
           sleep(wait)
 
           next

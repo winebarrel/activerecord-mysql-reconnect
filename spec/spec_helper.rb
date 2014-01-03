@@ -19,6 +19,8 @@ RSpec.configure do |config|
       :database => 'employees'
     )
 
+    ActiveRecord::Base.logger = Logger.new($stdout)
+    ActiveRecord::Base.logger.formatter = proc {|_, _, _, message| "#{message}\n" }
     ActiveRecord::Base.execution_tries = 10
   end
 end
