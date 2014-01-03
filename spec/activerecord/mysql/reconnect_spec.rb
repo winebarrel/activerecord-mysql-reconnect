@@ -49,6 +49,7 @@ describe Hash do
               )
         thread_running = false
         expect(emp.id).to eq(300025)
+        expect(emp.emp_no).to eq(1)
       }
 
       th.abort_on_exception = true
@@ -75,21 +76,25 @@ describe Hash do
       expect(Employee.count).to eq(300024)
 
       ActiveRecord::Base.transaction do
-        Employee.create(
-          :emp_no     => 1,
-          :birth_date => Time.now,
-          :first_name => 'Scott',
-          :last_name  => 'Tiger',
-          :hire_date  => Time.now
-        )
+        emp = Employee.create(
+                :emp_no     => 1,
+                :birth_date => Time.now,
+                :first_name => 'Scott',
+                :last_name  => 'Tiger',
+                :hire_date  => Time.now
+              )
+        expect(emp.id).to eq(300025)
+        expect(emp.emp_no).to eq(1)
         mysql_restart
-        Employee.create(
-          :emp_no     => 2,
-          :birth_date => Time.now,
-          :first_name => 'Scott',
-          :last_name  => 'Tiger',
-          :hire_date  => Time.now
-        )
+        emp = Employee.create(
+                :emp_no     => 2,
+                :birth_date => Time.now,
+                :first_name => 'Scott',
+                :last_name  => 'Tiger',
+                :hire_date  => Time.now
+              )
+        expect(emp.id).to eq(300025)
+        expect(emp.emp_no).to eq(2)
       end
 
       expect(Employee.count).to eq(300025)
@@ -101,29 +106,35 @@ describe Hash do
       expect(Employee.count).to eq(300024)
 
       ActiveRecord::Base.retryable_transaction do
-        Employee.create(
-          :emp_no     => 1,
-          :birth_date => Time.now,
-          :first_name => 'Scott',
-          :last_name  => 'Tiger',
-          :hire_date  => Time.now
-        )
+        emp = Employee.create(
+                :emp_no     => 1,
+                :birth_date => Time.now,
+                :first_name => 'Scott',
+                :last_name  => 'Tiger',
+                :hire_date  => Time.now
+              )
+        expect(emp.id).to eq(300025)
+        expect(emp.emp_no).to eq(1)
         mysql_restart
-        Employee.create(
-          :emp_no     => 2,
-          :birth_date => Time.now,
-          :first_name => 'Scott',
-          :last_name  => 'Tiger',
-          :hire_date  => Time.now
-        )
+        emp = Employee.create(
+                :emp_no     => 2,
+                :birth_date => Time.now,
+                :first_name => 'Scott',
+                :last_name  => 'Tiger',
+                :hire_date  => Time.now
+              )
+        expect(emp.id).to eq(300026)
+        expect(emp.emp_no).to eq(2)
         mysql_restart
-        Employee.create(
-          :emp_no     => 3,
-          :birth_date => Time.now,
-          :first_name => 'Scott',
-          :last_name  => 'Tiger',
-          :hire_date  => Time.now
-        )
+        emp = Employee.create(
+                :emp_no     => 3,
+                :birth_date => Time.now,
+                :first_name => 'Scott',
+                :last_name  => 'Tiger',
+                :hire_date  => Time.now
+              )
+        expect(emp.id).to eq(300027)
+        expect(emp.emp_no).to eq(3)
       end
 
       expect(Employee.count).to eq(300027)
