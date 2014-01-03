@@ -1,6 +1,7 @@
 require 'active_record'
 require 'active_record/connection_adapters/abstract_mysql_adapter'
 require 'active_support'
+require 'mysql2'
 require 'logger'
 
 class ActiveRecord::Base
@@ -74,7 +75,7 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
       begin
         retval = (block_with_reconnect || block).call(sql_names)
         break
-      rescue => e
+      rescue ActiveRecord::StatementInvalid, Mysql2::Error => e
         if not without_retry? and (tries.zero? or n < tries) and e.message =~ Regexp.union(ERROR_MESSAGES)
           unless block_with_reconnect
             block_with_reconnect = proc {|i| reconnect! ; block.call(i) }
