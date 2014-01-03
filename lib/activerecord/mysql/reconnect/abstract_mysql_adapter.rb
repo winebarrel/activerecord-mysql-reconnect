@@ -16,6 +16,18 @@ class ActiveRecord::Base
         Thread.current[ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::WITHOUT_RETRY_KEY] = nil
       end
     end
+
+    def retryable_transaction
+      begin
+        Thread.current[ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::RETRYABLE_TRANSACTION_KEY] = []
+
+        ActiveRecord::Base.transaction do
+          yield
+        end
+      ensure
+        Thread.current[ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::RETRYABLE_TRANSACTION_KEY] = nil
+      end
+    end
   end
 end
 
@@ -32,11 +44,18 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
   ]
 
   WITHOUT_RETRY_KEY = 'activerecord-mysql-reconnect-without-retry'
-  TRANSACTION_RETRY_KEY = 'activerecord-mysql-reconnect-transaction-retry'
+  RETRYABLE_TRANSACTION_KEY = 'activerecord-mysql-reconnect-transaction-retry'
 
   def execute_with_reconnect(sql, name = nil)
-    retryable do
-      execute_without_reconnect(sql, name)
+    retryable(sql, name) do |sql_names|
+      retval = nil
+
+      sql_names.each do |s, n|
+        retval = execute_without_reconnect(s, n)
+      end
+
+      add_sql_to_transaction(sql, name)
+      retval
     end
   end
 
@@ -44,22 +63,24 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
 
   private
 
-  def retryable(&block)
+  def retryable(sql, name, &block)
     tries = ActiveRecord::Base.execution_tries || DEFAULT_EXECUTION_TRIES
     logger = ActiveRecord::Base.logger || Logger.new($stderr)
     block_with_reconnect = nil
     retval = nil
+    sql_names = [[sql, name]]
 
     retryable_loop(tries) do |n|
       begin
-        retval = (block_with_reconnect || block).call
+        retval = (block_with_reconnect || block).call(sql_names)
         break
       rescue => e
         if not without_retry? and (tries.zero? or n < tries) and e.message =~ Regexp.union(ERROR_MESSAGES)
           unless block_with_reconnect
-            block_with_reconnect = proc { reconnect! ; block.call }
+            block_with_reconnect = proc {|i| reconnect! ; block.call(i) }
           end
 
+          sql_names = merge_transaction(sql, name)
           wait = (ActiveRecord::Base.execution_retry_wait || DEFAULT_EXECUTION_RETRY_WAIT) * n
           logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds. (cause: #{e} [#{e.class}])")
           sleep(wait)
@@ -84,5 +105,21 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
 
   def without_retry?
     !!Thread.current[WITHOUT_RETRY_KEY]
+  end
+
+  def add_sql_to_transaction(sql, name)
+    if (buf = Thread.current[RETRYABLE_TRANSACTION_KEY])
+      buf << [sql, name]
+    end
+  end
+
+  def merge_transaction(sql, name)
+    sql_name = [sql, name]
+
+    if (buf = Thread.current[RETRYABLE_TRANSACTION_KEY])
+      buf + [sql_name]
+    else
+      [sql_name]
+    end
   end
 end

@@ -69,4 +69,60 @@ describe Hash do
       end
     }.to raise_error(ActiveRecord::StatementInvalid)
   end
+
+  it 'transaction' do
+    expect {
+      ActiveRecord::Base.transaction do
+        Employee.create(
+          :emp_no     => '0',
+          :birth_date => Time.now,
+          :first_name => "Scott",
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
+        mysql_restart
+        Employee.create(
+          :emp_no     => '0',
+          :birth_date => Time.now,
+          :first_name => "Scott",
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
+      end
+
+      expect(Employee.count).to eq(300025)
+    }.to_not raise_error
+  end
+
+  it 'retryable_transaction' do
+    expect {
+      ActiveRecord::Base.retryable_transaction do
+        Employee.create(
+          :emp_no     => '0',
+          :birth_date => Time.now,
+          :first_name => "Scott",
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
+        mysql_restart
+        Employee.create(
+          :emp_no     => '0',
+          :birth_date => Time.now,
+          :first_name => "Scott",
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
+        mysql_restart
+        Employee.create(
+          :emp_no     => '0',
+          :birth_date => Time.now,
+          :first_name => "Scott",
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
+      end
+
+      expect(Employee.count).to eq(300027)
+    }.to_not raise_error
+  end
 end
