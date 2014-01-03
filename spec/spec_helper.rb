@@ -8,7 +8,7 @@ def mysql_restart
 end
 
 RSpec.configure do |config|
-  config.before(:all) do
+  config.before(:each) do
     employees_sql = File.expand_path('../employees.sql', __FILE__)
     system("mysql -u root < #{employees_sql}")
 
