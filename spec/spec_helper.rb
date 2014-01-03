@@ -18,5 +18,7 @@ RSpec.configure do |config|
       :username => 'root',
       :database => 'employees'
     )
+
+    ActiveRecord::Base.execution_tries = 10
   end
 end

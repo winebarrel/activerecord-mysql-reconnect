@@ -14,4 +14,18 @@ describe Hash do
       expect(Employee.count).to eq(300024)
     }.to_not raise_error
   end
+
+  it 'on select' do
+    expect {
+      th = Thread.start {
+        expect(Employee.where(:id => 1).pluck('sleep(15)')).to eq([1])
+      }
+
+      th.abort_on_exception = true
+      sleep 3
+
+      mysql_restart
+      expect(Employee.count).to eq(300024)
+    }.to_not raise_error
+  end
 end
