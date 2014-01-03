@@ -55,3 +55,12 @@ MySQL server has gone away. Trying to reconnect in 0.5 seconds.
    (101.5ms)  SELECT COUNT(*) FROM `employees`
 300024
 ```
+
+# Running tests
+
+```sh
+mysql.server start
+export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART='mysql.server restart'
+bundle install
+bundle exec rake
+```
