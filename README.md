@@ -2,6 +2,9 @@
 
 It is the library to reconnect automatically when ActiveRecord is disconnected from MySQL.
 
+[![Gem Version](https://badge.fury.io/rb/activerecord-mysql-reconnect.png)](http://badge.fury.io/rb/activerecord-mysql-reconnect)
+[![Build Status](https://drone.io/bitbucket.org/winebarrel/activerecord-mysql-reconnect/status.png)](https://drone.io/bitbucket.org/winebarrel/activerecord-mysql-reconnect/latest)
+
 ## Installation
 
 Add this line to your application's Gemfile:
