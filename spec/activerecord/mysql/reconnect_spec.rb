@@ -41,7 +41,7 @@ describe Hash do
       th = Thread.start {
         thread_running = true
         emp = Employee.create(
-                :emp_no     => '0',
+                :emp_no     => 1,
                 :birth_date => Time.now,
                 :first_name => "' + sleep(15) + '",
                 :last_name  => 'Tiger',
@@ -60,7 +60,7 @@ describe Hash do
     }.to_not raise_error
   end
 
-  it 'without retry' do
+  it 'without_retry' do
     expect {
       ActiveRecord::Base.without_retry do
         Employee.count
@@ -72,9 +72,11 @@ describe Hash do
 
   it 'transaction' do
     expect {
+      expect(Employee.count).to eq(300024)
+
       ActiveRecord::Base.transaction do
         Employee.create(
-          :emp_no     => '0',
+          :emp_no     => 1,
           :birth_date => Time.now,
           :first_name => "Scott",
           :last_name  => 'Tiger',
@@ -82,7 +84,7 @@ describe Hash do
         )
         mysql_restart
         Employee.create(
-          :emp_no     => '0',
+          :emp_no     => 2,
           :birth_date => Time.now,
           :first_name => "Scott",
           :last_name  => 'Tiger',
@@ -96,27 +98,29 @@ describe Hash do
 
   it 'retryable_transaction' do
     expect {
+      expect(Employee.count).to eq(300024)
+
       ActiveRecord::Base.retryable_transaction do
         Employee.create(
-          :emp_no     => '0',
+          :emp_no     => 1,
           :birth_date => Time.now,
-          :first_name => "Scott",
+          :first_name => 'Scott',
           :last_name  => 'Tiger',
           :hire_date  => Time.now
         )
         mysql_restart
         Employee.create(
-          :emp_no     => '0',
+          :emp_no     => 2,
           :birth_date => Time.now,
-          :first_name => "Scott",
+          :first_name => 'Scott',
           :last_name  => 'Tiger',
           :hire_date  => Time.now
         )
         mysql_restart
         Employee.create(
-          :emp_no     => '0',
+          :emp_no     => 3,
           :birth_date => Time.now,
-          :first_name => "Scott",
+          :first_name => 'Scott',
           :last_name  => 'Tiger',
           :hire_date  => Time.now
         )
