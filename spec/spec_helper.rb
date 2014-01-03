@@ -2,6 +2,11 @@ require 'activerecord/mysql/reconnect'
 
 class Employee < ActiveRecord::Base; end
 
+def mysql_restart
+  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART'] || 'sudo /etc/init.d/mysql restart'
+  system(cmd)
+end
+
 RSpec.configure do |config|
   config.before(:all) do
     employees_sql = File.expand_path('../employees.sql', __FILE__)

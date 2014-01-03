@@ -1,5 +1,7 @@
 describe Hash do
-  it 'activerecord-mysql-reconnect' do
-    p Employee.count
+  it 'count' do
+    expect(Employee.count).to eq(300024)
+    mysql_restart
+    expect(Employee.count).to eq(300024)
   end
 end
