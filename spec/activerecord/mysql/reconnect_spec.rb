@@ -26,6 +26,7 @@ describe Hash do
 
       mysql_restart
       expect(Employee.count).to eq(300024)
+      th.join
     }.to_not raise_error
   end
 end
