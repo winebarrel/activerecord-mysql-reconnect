@@ -3,6 +3,16 @@ require 'mysql2'
 
 class Employee < ActiveRecord::Base; end
 
+def mysql_start
+  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_START'] || 'sudo /etc/init.d/mysql start'
+  system(cmd)
+end
+
+def mysql_stop
+  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_STOP'] || 'sudo /etc/init.d/mysql stop'
+  system(cmd)
+end
+
 def mysql_restart
   cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART'] || 'sudo /etc/init.d/mysql restart'
   system(cmd)

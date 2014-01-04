@@ -78,6 +78,8 @@ end
 
 ```sh
 mysql.server start
+export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_START='mysql.server start'
+export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_STOP='mysql.server stop'
 export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART='mysql.server restart'
 bundle install
 bundle exec rake

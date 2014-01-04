@@ -173,4 +173,24 @@ describe 'activerecord-mysql-reconnect' do
       expect(Employee.count).to eq(300024)
     }.to_not raise_error
   end
+
+  it 'reconnect verify' do
+    expect {
+      thread_running = false
+
+      th = Thread.start {
+        thread_running = true
+        mysql_stop
+        sleep 15
+        mysql_start
+        thread_running = false
+      }
+
+      th.abort_on_exception = true
+      sleep 3
+      expect(thread_running).to be_true
+      ActiveRecord::Base.connection.verify!
+      th.join
+    }.to_not raise_error
+  end
 end
