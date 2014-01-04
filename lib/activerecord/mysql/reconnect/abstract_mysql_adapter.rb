@@ -42,7 +42,8 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
     'closed MySQL connection',
     "Can't connect to MySQL server",
     'Query execution was interrupted',
-    'Access denied',
+    'Access denied for user',
+    'Lost connection to MySQL server during query',
   ]
 
   WITHOUT_RETRY_KEY = 'activerecord-mysql-reconnect-without-retry'
@@ -67,11 +68,17 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
 
   def retryable(sql, name, &block)
     tries = ActiveRecord::Base.execution_tries || DEFAULT_EXECUTION_TRIES
-    logger = ActiveRecord::Base.logger || Logger.new($stderr)
+    logger = nil
     block_with_reconnect = nil
     retval = nil
     sql_names = [[sql, name]]
     orig_transaction = @transaction
+
+    if defined?(Rails)
+      logger = Rails.logger || ActiveRecord::Base.logger || Logger.new($stderr)
+    else
+      logger = ActiveRecord::Base.logger || Logger.new($stderr)
+    end
 
     retryable_loop(tries) do |n|
       begin
