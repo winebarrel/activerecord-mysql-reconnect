@@ -28,7 +28,7 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
       :on_error => proc {
         unless block_with_reconnect
           block_with_reconnect = proc do |i|
-            reconnect!
+            reconnect_without_retry!
             @transaction = orig_transaction if orig_transaction
             block.call(i)
           end

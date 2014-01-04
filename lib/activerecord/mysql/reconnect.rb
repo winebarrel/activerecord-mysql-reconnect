@@ -5,6 +5,7 @@ require 'active_record'
 require 'active_record/base'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/abstract_mysql_adapter'
+require 'active_record/connection_adapters/mysql2_adapter'
 require 'active_record/connection_adapters/abstract/connection_pool'
 require 'active_support'
 
@@ -12,6 +13,7 @@ require 'activerecord/mysql/reconnect/version'
 require 'activerecord/mysql/reconnect/base_ext'
 require 'activerecord/mysql/reconnect/abstract_adapter_ext'
 require 'activerecord/mysql/reconnect/abstract_mysql_adapter_ext'
+require 'activerecord/mysql/reconnect/mysql2_adapter_ext'
 require 'activerecord/mysql/reconnect/connection_pool_ext'
 
 module Activerecord::Mysql::Reconnect
