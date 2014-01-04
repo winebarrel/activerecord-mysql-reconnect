@@ -43,7 +43,7 @@ module Activerecord
 
         def retryable(opts)
           block = opts.fetch(:proc)
-          on_error = opts.fetch(:on_error)
+          on_error = opts[:on_error]
           tries = self.execution_tries
           retval = nil
 
@@ -53,7 +53,7 @@ module Activerecord
               break
             rescue => e
               if (tries.zero? or n < tries) and should_handle?(e)
-                on_error.call
+                on_error.call if on_error
                 wait = self.execution_retry_wait * n
                 logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds. (cause: #{e} [#{e.class}])")
                 sleep(wait)

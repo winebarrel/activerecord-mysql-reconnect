@@ -39,14 +39,6 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
     )
   end
 
-  def retryable_loop(n)
-    if n.zero?
-      loop { n += 1 ; yield(n) }
-    else
-      n.times {|i| yield(i + 1) }
-    end
-  end
-
   def add_sql_to_transaction(sql, name)
     if (buf = Activerecord::Mysql::Reconnect.retryable_transaction_buffer)
       buf << [sql, name]
