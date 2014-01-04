@@ -42,6 +42,7 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
     'closed MySQL connection',
     "Can't connect to MySQL server",
     'Query execution was interrupted',
+    'Access denied',
   ]
 
   WITHOUT_RETRY_KEY = 'activerecord-mysql-reconnect-without-retry'
