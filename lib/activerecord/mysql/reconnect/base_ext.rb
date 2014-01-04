@@ -1,6 +1,6 @@
 class ActiveRecord::Base
-  class_attribute :execution_tries
-  class_attribute :execution_retry_wait
+  class_attribute :execution_tries, :instance_writer => false
+  class_attribute :execution_retry_wait, :instance_writer => false
 
   class << self
     def without_retry
