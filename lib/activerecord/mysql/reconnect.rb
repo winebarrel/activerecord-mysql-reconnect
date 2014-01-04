@@ -41,10 +41,30 @@ module Activerecord
           ActiveRecord::Base.execution_retry_wait || DEFAULT_EXECUTION_RETRY_WAIT
         end
 
-        def should_handle?(e)
-          !without_retry? &&
-          HANDLE_ERROR.any? {|i| e.kind_of?(i) } &&
-          Regexp.union(HANDLE_ERROR_MESSAGES) =~ e.message
+        def retryable(opts)
+          block = opts.fetch(:proc)
+          on_error = opts.fetch(:on_error)
+          tries = self.execution_tries
+          retval = nil
+
+          retryable_loop(tries) do |n|
+            begin
+              retval = block.call
+              break
+            rescue => e
+              if (tries.zero? or n < tries) and should_handle?(e)
+                on_error.call
+                wait = self.execution_retry_wait * n
+                logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds. (cause: #{e} [#{e.class}])")
+                sleep(wait)
+                next
+              else
+                raise e
+              end
+            end
+          end
+
+          return retval
         end
 
         def logger
@@ -82,6 +102,22 @@ module Activerecord
 
         def retryable_transaction_buffer
           Thread.current[RETRYABLE_TRANSACTION_KEY]
+        end
+
+        private
+
+        def retryable_loop(n)
+          if n.zero?
+            loop { n += 1 ; yield(n) }
+          else
+            n.times {|i| yield(i + 1) }
+          end
+        end
+
+        def should_handle?(e)
+          !without_retry? &&
+          HANDLE_ERROR.any? {|i| e.kind_of?(i) } &&
+          Regexp.union(HANDLE_ERROR_MESSAGES) =~ e.message
         end
       end # end of class methods
 

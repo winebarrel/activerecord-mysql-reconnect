@@ -17,40 +17,26 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
   private
 
   def retryable(sql, name, &block)
-    tries = Activerecord::Mysql::Reconnect.execution_tries
-    logger = Activerecord::Mysql::Reconnect.logger
     block_with_reconnect = nil
-    retval = nil
     sql_names = [[sql, name]]
     orig_transaction = @transaction
 
-    retryable_loop(tries) do |n|
-      begin
-        retval = (block_with_reconnect || block).call(sql_names)
-        break
-      rescue => e
-        if (tries.zero? or n < tries) and Activerecord::Mysql::Reconnect.should_handle?(e)
-          unless block_with_reconnect
-            block_with_reconnect = proc do |i|
-              reconnect!
-              @transaction = orig_transaction if orig_transaction
-              block.call(i)
-            end
+    Activerecord::Mysql::Reconnect.retryable(
+      :proc => proc {
+        (block_with_reconnect || block).call(sql_names)
+      },
+      :on_error => proc {
+        unless block_with_reconnect
+          block_with_reconnect = proc do |i|
+            reconnect!
+            @transaction = orig_transaction if orig_transaction
+            block.call(i)
           end
-
-          sql_names = merge_transaction(sql, name)
-          wait = Activerecord::Mysql::Reconnect.execution_retry_wait * n
-          logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds. (cause: #{e} [#{e.class}])")
-          sleep(wait)
-
-          next
-        else
-          raise e
         end
-      end
-    end
 
-    return retval
+        sql_names = merge_transaction(sql, name)
+      }
+    )
   end
 
   def retryable_loop(n)
