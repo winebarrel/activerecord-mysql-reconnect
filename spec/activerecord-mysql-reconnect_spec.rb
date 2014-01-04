@@ -165,4 +165,12 @@ describe 'activerecord-mysql-reconnect' do
       expect(Employee.count).to eq(300027)
     }.to_not raise_error
   end
+
+  it 'reconnect new connection' do
+    expect {
+      ActiveRecord::Base.clear_all_connections!
+      mysql_restart
+      expect(Employee.count).to eq(300024)
+    }.to_not raise_error
+  end
 end

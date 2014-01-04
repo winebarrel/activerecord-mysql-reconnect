@@ -74,7 +74,7 @@ ActiveRecord::Base.retryable_transaction do
 end
 ```
 
-## Running tests
+## Running tests on local
 
 ```sh
 mysql.server start
