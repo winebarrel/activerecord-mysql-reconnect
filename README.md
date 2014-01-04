@@ -74,6 +74,25 @@ ActiveRecord::Base.retryable_transaction do
 end
 ```
 
+## Use on rails
+
+### Gemfile
+
+```ruby
+gem 'activerecord-mysql-reconnect'
+```
+
+### environment file
+
+```ruby
+MyApp::Application.configure do
+  ...
+  config.active_record.execution_tries = 10 # times
+  config.active_record.execution_retry_wait = 1.5 # sec
+  ...
+ene
+```
+
 ## Running tests on local
 
 ```sh
