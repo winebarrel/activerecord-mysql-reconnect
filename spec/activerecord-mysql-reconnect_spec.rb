@@ -166,7 +166,7 @@ describe 'activerecord-mysql-reconnect' do
     }.to_not raise_error
   end
 
-  it 'reconnect new connection' do
+  it 'retry new connection' do
     expect {
       ActiveRecord::Base.clear_all_connections!
       mysql_restart
@@ -174,7 +174,7 @@ describe 'activerecord-mysql-reconnect' do
     }.to_not raise_error
   end
 
-  it 'reconnect verify' do
+  it 'retry verify' do
     expect {
       thread_running = false
 
@@ -190,6 +190,26 @@ describe 'activerecord-mysql-reconnect' do
       sleep 3
       expect(thread_running).to be_true
       ActiveRecord::Base.connection.verify!
+      th.join
+    }.to_not raise_error
+  end
+
+  it 'retry reconnect' do
+    expect {
+      thread_running = false
+
+      th = Thread.start {
+        thread_running = true
+        mysql_stop
+        sleep 15
+        mysql_start
+        thread_running = false
+      }
+
+      th.abort_on_exception = true
+      sleep 3
+      expect(thread_running).to be_true
+      ActiveRecord::Base.connection.reconnect!
       th.join
     }.to_not raise_error
   end
