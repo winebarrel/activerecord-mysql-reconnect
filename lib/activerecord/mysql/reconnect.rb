@@ -47,6 +47,10 @@ module Activerecord::Mysql::Reconnect
       ActiveRecord::Base.execution_retry_wait || DEFAULT_EXECUTION_RETRY_WAIT
     end
 
+    def enable_retry
+      !!ActiveRecord::Base.enable_retry
+    end
+
     def retryable(opts)
       block = opts.fetch(:proc)
       on_error = opts[:on_error]
@@ -58,7 +62,7 @@ module Activerecord::Mysql::Reconnect
           retval = block.call
           break
         rescue => e
-          if (tries.zero? or n < tries) and should_handle?(e)
+          if enable_retry and (tries.zero? or n < tries) and should_handle?(e)
             on_error.call if on_error
             wait = self.execution_retry_wait * n
             logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds. (cause: #{e} [#{e.class}])")

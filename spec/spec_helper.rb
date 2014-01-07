@@ -36,6 +36,7 @@ RSpec.configure do |config|
 
     ActiveRecord::Base.logger = Logger.new($stdout)
     ActiveRecord::Base.logger.formatter = proc {|_, _, _, message| "#{message}\n" }
+    ActiveRecord::Base.enable_retry = true
     ActiveRecord::Base.execution_tries = 10
   end
 end

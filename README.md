@@ -34,6 +34,7 @@ ActiveRecord::Base.establish_connection(
 
 ActiveRecord::Base.logger = Logger.new($stdout)
 ActiveRecord::Base.logger.formatter = proc {|_, _, _, message| "#{message}\n" }
+ActiveRecord::Base.enable_retry = true
 ActiveRecord::Base.execution_tries = 3
 
 class Employee < ActiveRecord::Base; end
@@ -87,6 +88,7 @@ gem 'activerecord-mysql-reconnect'
 ```ruby
 MyApp::Application.configure do
   ...
+  config.active_record.enable_retry = true
   config.active_record.execution_tries = 10 # times
   config.active_record.execution_retry_wait = 1.5 # sec
   ...

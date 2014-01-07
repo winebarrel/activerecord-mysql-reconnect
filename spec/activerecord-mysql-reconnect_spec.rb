@@ -213,4 +213,23 @@ describe 'activerecord-mysql-reconnect' do
       th.join
     }.to_not raise_error
   end
+
+  it 'disable reconnect' do
+    expect {
+      begin
+        ActiveRecord::Base.enable_retry = false
+        expect(Employee.all.length).to eq(300024)
+        mysql_restart
+        expect(Employee.all.length).to eq(300024)
+      ensure
+        ActiveRecord::Base.enable_retry = true
+      end
+    }.to raise_error(ActiveRecord::StatementInvalid)
+
+    expect {
+      expect(Employee.all.length).to eq(300024)
+      mysql_restart
+      expect(Employee.all.length).to eq(300024)
+    }.to_not raise_error
+  end
 end
