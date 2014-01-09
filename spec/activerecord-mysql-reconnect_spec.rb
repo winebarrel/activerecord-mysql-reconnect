@@ -228,16 +228,13 @@ describe 'activerecord-mysql-reconnect' do
   end
 
   it 'disable reconnect' do
-    expect {
-      begin
-        ActiveRecord::Base.enable_retry = false
+    disable_retry do
+      expect {
         expect(Employee.all.length).to eq(300024)
         mysql_restart
         expect(Employee.all.length).to eq(300024)
-      ensure
-        ActiveRecord::Base.enable_retry = true
-      end
-    }.to raise_error(ActiveRecord::StatementInvalid)
+      }.to raise_error(ActiveRecord::StatementInvalid)
+    end
 
     expect {
       expect(Employee.all.length).to eq(300024)
@@ -247,23 +244,17 @@ describe 'activerecord-mysql-reconnect' do
   end
 
   it 'read only (read)' do
-    begin
-      ActiveRecord::Base.retry_read_only = true
-
+    enable_read_only do
       expect {
         expect(Employee.all.length).to eq(300024)
         mysql_restart
         expect(Employee.all.length).to eq(300024)
       }.to_not raise_error
-    ensure
-      ActiveRecord::Base.retry_read_only = false
     end
   end
 
   it 'read only (write)' do
-    begin
-      ActiveRecord::Base.retry_read_only = true
-
+    enable_read_only do
       expect {
         thread_running = false
 
@@ -289,8 +280,6 @@ describe 'activerecord-mysql-reconnect' do
         mysql_restart
         th.join
       }.to raise_error(ActiveRecord::StatementInvalid)
-    ensure
-      ActiveRecord::Base.retry_read_only = false
     end
   end
 

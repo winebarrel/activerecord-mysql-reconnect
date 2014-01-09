@@ -37,6 +37,26 @@ def mysql2_error(message)
   end
 end
 
+def disable_retry
+  begin
+    expect(ActiveRecord::Base.enable_retry).to be_true
+    ActiveRecord::Base.enable_retry = false
+    yield
+  ensure
+    ActiveRecord::Base.enable_retry = true
+  end
+end
+
+def enable_read_only
+  begin
+    expect(ActiveRecord::Base.retry_read_only).to be_false
+    ActiveRecord::Base.retry_read_only = true
+    yield
+  ensure
+    ActiveRecord::Base.retry_read_only = false
+  end
+end
+
 RSpec.configure do |config|
   config.before(:each) do
     employees_sql = File.expand_path('../employees.sql', __FILE__)
