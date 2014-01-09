@@ -91,10 +91,19 @@ MyApp::Application.configure do
   config.active_record.enable_retry = true
   config.active_record.execution_tries = 10 # times
   config.active_record.execution_retry_wait = 1.5 # sec
-  config.active_record.retry_read_only = false # default: true
+  config.active_record.retry_mode = :rw # default: `:r`, valid values: `:r`, `:rw`, `:force`
   ...
 ene
 ```
+
+## retry_mode
+
+* :r
+  * retry only SELECT / SHOW / SET
+* :rw
+  * Retry in all SQL, but does not retry if  'Lost connection' has happened in write SQL
+* :force
+  * Retry in all SQL
 
 ## Running tests on local
 

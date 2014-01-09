@@ -49,11 +49,11 @@ end
 
 def enable_read_only
   begin
-    expect(ActiveRecord::Base.retry_read_only).to be_false
-    ActiveRecord::Base.retry_read_only = true
+    expect(ActiveRecord::Base.retry_mode).to eq(:rw)
+    ActiveRecord::Base.retry_mode = :r
     yield
   ensure
-    ActiveRecord::Base.retry_read_only = false
+    ActiveRecord::Base.retry_mode = :rw
   end
 end
 
@@ -90,6 +90,6 @@ RSpec.configure do |config|
     ActiveRecord::Base.logger.formatter = proc {|_, _, _, message| "#{message}\n" }
     ActiveRecord::Base.enable_retry = true
     ActiveRecord::Base.execution_tries = 10
-    ActiveRecord::Base.retry_read_only = false
+    ActiveRecord::Base.retry_mode = :rw
   end
 end

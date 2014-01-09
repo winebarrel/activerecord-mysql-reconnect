@@ -2,9 +2,19 @@ class ActiveRecord::Base
   class_attribute :execution_tries,      :instance_accessor => false
   class_attribute :execution_retry_wait, :instance_accessor => false
   class_attribute :enable_retry,         :instance_accessor => false
-  class_attribute :retry_read_only,      :instance_accessor => false, :default => true
+
+  RETRY_MODES = [:r, :rw, :force]
+  DEFAULT_RETRY_MODE = :r
 
   class << self
+    def retry_mode=(v)
+       Activerecord::Mysql::Reconnect.retry_mode = v
+    end
+
+    def retry_mode
+       Activerecord::Mysql::Reconnect.retry_mode
+    end
+
     def without_retry
       Activerecord::Mysql::Reconnect.without_retry do
         yield

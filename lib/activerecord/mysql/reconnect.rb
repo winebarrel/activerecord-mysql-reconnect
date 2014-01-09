@@ -46,6 +46,9 @@ module Activerecord::Mysql::Reconnect
 
   READ_SQL_REGEXP = /\A\s*(?:SELECT|SHOW|SET)\b/i
 
+  RETRY_MODES = [:r, :rw, :force]
+  DEFAULT_RETRY_MODE = :r
+
   class << self
     def execution_tries
       ActiveRecord::Base.execution_tries || DEFAULT_EXECUTION_TRIES
@@ -59,8 +62,16 @@ module Activerecord::Mysql::Reconnect
       !!ActiveRecord::Base.enable_retry
     end
 
-    def retry_read_only
-      !!ActiveRecord::Base.retry_read_only
+    def retry_mode=(v)
+      unless RETRY_MODES.include?(v)
+        raise "Invalid retry_mode. Please set one of the following: #{RETRY_MODES.map {|i| i.inspect }.join(', ')}"
+      end
+
+      @activerecord_mysql_reconnect_retry_mode = v
+    end
+
+    def retry_mode
+      @activerecord_mysql_reconnect_retry_mode || DEFAULT_RETRY_MODE
     end
 
     def retryable(opts)
@@ -145,8 +156,8 @@ module Activerecord::Mysql::Reconnect
     end
 
     def should_handle?(e, opts = {})
-      sql       = opts[:sql]
-      read_only = opts[:read_only]
+      sql        = opts[:sql]
+      retry_mode = opts[:retry_mode]
 
       if without_retry?
         return false
@@ -161,7 +172,11 @@ module Activerecord::Mysql::Reconnect
       end
 
       if sql and READ_SQL_REGEXP !~ sql
-        if read_only or Regexp.union(HANDLE_R_ERROR_MESSAGES) =~ e.message
+        if retry_mode == :r
+          return false
+        end
+
+        if retry_mode != :force and Regexp.union(HANDLE_R_ERROR_MESSAGES) =~ e.message
           return false
         end
       end
