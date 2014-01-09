@@ -1,0 +1,12 @@
+activerecord-mysql-reconnect 0.3.0 (January 9, 2014)
+
+	* Retry is disabled by default
+	* Read-only mode is added
+
+activerecord-mysql-reconnect 0.2.0 (January 4, 2014)
+
+	* Retry transaction is supported
+
+activerecord-mysql-reconnect 0.1.0 (October 11, 2013)
+
+	* activerecord-mysql-reconnect is released
