@@ -74,29 +74,6 @@ def thread_run
   return th
 end
 
-class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
-  def begin_db_transaction
-    $disable_transaction || execute('BEGIN')
-  end
-
-  def commit_db_transaction
-    $disable_transaction || execute('COMMIT')
-  end
-
-  def rollback_db_transaction
-    $disable_transaction || execute('ROLLBACK')
-  end
-end
-
-def disable_transaction
-  begin
-    $disable_transaction = true
-    yield
-  ensure
-    $disable_transaction = false
-  end
-end
-
 RSpec.configure do |config|
   config.before(:each) do
     employees_sql = File.expand_path('../employees.sql', __FILE__)
