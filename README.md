@@ -98,12 +98,9 @@ ene
 
 ## Retry mode
 
-* :r
-  * retry only SELECT / SHOW / SET
-* :rw
-  * Retry in all SQL, but does not retry if  'Lost connection' has happened in write SQL
-* :force
-  * Retry in all SQL
+* `:r`      retry only SELECT / SHOW / SET
+* `:rw`     Retry in all SQL, but does not retry if  'Lost connection' has happened in write SQL
+* `:force`  Retry in all SQL
 
 ## Running tests on local
 
