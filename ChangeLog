@@ -1,3 +1,7 @@
+activerecord-mysql-reconnect 0.3.1 (January 9, 2014)
+
+	* Retry mode is added
+
 activerecord-mysql-reconnect 0.3.0 (January 9, 2014)
 
 	* Retry is disabled by default

@@ -96,7 +96,7 @@ MyApp::Application.configure do
 ene
 ```
 
-## retry_mode
+## Retry mode
 
 * :r
   * retry only SELECT / SHOW / SET
