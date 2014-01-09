@@ -91,6 +91,7 @@ MyApp::Application.configure do
   config.active_record.enable_retry = true
   config.active_record.execution_tries = 10 # times
   config.active_record.execution_retry_wait = 1.5 # sec
+  config.active_record.retry_read_only = false # default: true
   ...
 ene
 ```
@@ -101,7 +102,7 @@ ene
 mysql.server start
 export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_START='mysql.server start'
 export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_STOP='mysql.server stop'
-export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART='mysql.server restart'
+export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART='killall -9 mysqld; sleep 3; mysql.server restart; true'
 bundle install
 bundle exec rake
 ```
