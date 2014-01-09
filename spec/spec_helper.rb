@@ -57,6 +57,24 @@ def enable_read_only
   end
 end
 
+def thread_run
+  thread_running = false
+  do_stop = proc { thread_running = false }
+
+  th = Thread.start {
+    thread_running = true
+    yield(do_stop)
+    thread_running = false
+  }
+
+  th.abort_on_exception = true
+  sleep 3
+  expect(thread_running).to be_true
+
+  return th
+end
+
+
 RSpec.configure do |config|
   config.before(:each) do
     employees_sql = File.expand_path('../employees.sql', __FILE__)

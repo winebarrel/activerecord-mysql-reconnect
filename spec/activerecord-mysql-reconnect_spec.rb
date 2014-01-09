@@ -17,17 +17,10 @@ describe 'activerecord-mysql-reconnect' do
 
   it 'on select' do
     expect {
-      thread_running = false
-
-      th = Thread.start {
-        thread_running = true
+      th = thread_run {|do_stop|
         expect(Employee.where(:id => 1).pluck('sleep(15) * 0')).to eq([0])
-        thread_running = false
       }
 
-      th.abort_on_exception = true
-      sleep 3
-      expect(thread_running).to be_true
       mysql_restart
       expect(Employee.count).to be >= 300024
       th.join
@@ -36,10 +29,7 @@ describe 'activerecord-mysql-reconnect' do
 
   it 'on insert' do
     expect {
-      thread_running = false
-
-      th = Thread.start {
-        thread_running = true
+      th = thread_run {|do_stop|
         emp = nil
 
         mysql2_error('MySQL server has gone away') do
@@ -52,14 +42,12 @@ describe 'activerecord-mysql-reconnect' do
                 )
         end
 
-        thread_running = false
+        do_stop.call
+
         expect(emp.id).to eq(300025)
         expect(emp.emp_no).to eq(1)
       }
 
-      th.abort_on_exception = true
-      sleep 3
-      expect(thread_running).to be_true
       mysql_restart
       expect(Employee.count).to be >= 300024
       th.join
@@ -68,10 +56,7 @@ describe 'activerecord-mysql-reconnect' do
 
   it 'op update' do
     expect {
-      thread_running = false
-
-      th = Thread.start {
-        thread_running = true
+      th = thread_run {|do_stop|
         emp = Employee.where(:id => 1).first
         emp.first_name = "' + sleep(15) + '"
         emp.last_name = 'ZapZapZap'
@@ -80,15 +65,12 @@ describe 'activerecord-mysql-reconnect' do
           emp.save!
         end
 
-        thread_running = false
+        do_stop.call
 
         emp = Employee.where(:id => 1).first
         expect(emp.last_name).to eq('ZapZapZap')
       }
 
-      th.abort_on_exception = true
-      sleep 3
-      expect(thread_running).to be_true
       mysql_restart
       expect(Employee.count).to eq(300024)
       th.join
@@ -189,19 +171,12 @@ describe 'activerecord-mysql-reconnect' do
 
   it 'retry verify' do
     expect {
-      thread_running = false
-
-      th = Thread.start {
-        thread_running = true
+      th = thread_run {|do_stop|
         mysql_stop
         sleep 15
         mysql_start
-        thread_running = false
       }
 
-      th.abort_on_exception = true
-      sleep 3
-      expect(thread_running).to be_true
       ActiveRecord::Base.connection.verify!
       th.join
     }.to_not raise_error
@@ -209,19 +184,12 @@ describe 'activerecord-mysql-reconnect' do
 
   it 'retry reconnect' do
     expect {
-      thread_running = false
-
-      th = Thread.start {
-        thread_running = true
+      th = thread_run {|do_stop|
         mysql_stop
         sleep 15
         mysql_start
-        thread_running = false
       }
 
-      th.abort_on_exception = true
-      sleep 3
-      expect(thread_running).to be_true
       ActiveRecord::Base.connection.reconnect!
       th.join
     }.to_not raise_error
@@ -256,11 +224,7 @@ describe 'activerecord-mysql-reconnect' do
   it 'read only (write)' do
     enable_read_only do
       expect {
-        thread_running = false
-
-        th = Thread.start {
-          thread_running = true
-
+        th = thread_run {|do_stop|
           mysql2_error('MySQL server has gone away') do
             emp = Employee.create(
                     :emp_no     => 1,
@@ -270,13 +234,8 @@ describe 'activerecord-mysql-reconnect' do
                     :hire_date  => Time.now
                   )
           end
-
-          thread_running = false
         }
 
-        th.abort_on_exception = true
-        sleep 3
-        expect(thread_running).to be_true
         mysql_restart
         th.join
       }.to raise_error(ActiveRecord::StatementInvalid)
@@ -285,11 +244,7 @@ describe 'activerecord-mysql-reconnect' do
 
   it 'lost connection' do
     expect {
-      thread_running = false
-
-      th = Thread.start {
-        thread_running = true
-
+      th = thread_run {|do_stop|
         mysql2_error('Lost connection to MySQL server during query') do
           emp = Employee.create(
                   :emp_no     => 1,
@@ -299,13 +254,8 @@ describe 'activerecord-mysql-reconnect' do
                   :hire_date  => Time.now
                 )
         end
-
-        thread_running = false
       }
 
-      th.abort_on_exception = true
-      sleep 3
-      expect(thread_running).to be_true
       mysql_restart
       th.join
     }.to raise_error(ActiveRecord::StatementInvalid)
