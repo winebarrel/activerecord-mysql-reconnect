@@ -57,6 +57,16 @@ def enable_read_only
   end
 end
 
+def force_retry
+  begin
+    expect(ActiveRecord::Base.retry_mode).to eq(:rw)
+    ActiveRecord::Base.retry_mode = :force
+    yield
+  ensure
+    ActiveRecord::Base.retry_mode = :rw
+  end
+end
+
 def thread_run
   thread_running = false
   do_stop = proc { thread_running = false }
