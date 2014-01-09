@@ -14,12 +14,27 @@ def mysql_stop
 end
 
 def mysql_restart
-  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART'] || 'sudo /etc/init.d/mysql restart'
+  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART'] || 'sudo killall -9 mysqld; sleep 3; sudo /etc/init.d/mysql restart; true'
   system(cmd)
 end
 
 class Mysql2::Client
   def escape(str); str; end
+end
+
+class Mysql2::Error
+  def message
+    $mysql2_error_message || super
+  end
+end
+
+def mysql2_error(message)
+  begin
+    $mysql2_error_message = message
+    yield
+  ensure
+    $mysql2_error_message = nil
+  end
 end
 
 RSpec.configure do |config|
@@ -38,5 +53,6 @@ RSpec.configure do |config|
     ActiveRecord::Base.logger.formatter = proc {|_, _, _, message| "#{message}\n" }
     ActiveRecord::Base.enable_retry = true
     ActiveRecord::Base.execution_tries = 10
+    ActiveRecord::Base.retry_read_only = false
   end
 end
