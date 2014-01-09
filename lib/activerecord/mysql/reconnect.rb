@@ -66,6 +66,7 @@ module Activerecord::Mysql::Reconnect
     def retryable(opts)
       block     = opts.fetch(:proc)
       on_error  = opts[:on_error]
+      conn      = opts[:connection]
       tries     = self.execution_tries
       retval    = nil
 
@@ -77,7 +78,14 @@ module Activerecord::Mysql::Reconnect
           if enable_retry and (tries.zero? or n < tries) and should_handle?(e, opts)
             on_error.call if on_error
             wait = self.execution_retry_wait * n
-            logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds. (cause: #{e} [#{e.class}])")
+
+            opt_msgs = ["cause: #{e} [#{e.class}]"]
+
+            if conn and conn.kind_of?(Mysql2::Client)
+              opt_msgs << 'connection: ' + [:host, :database, :username].map {|k| "#{k}=#{conn.query_options[k]}" }.join(";")
+            end
+
+            logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds. (#{opt_msgs.join(', ')})")
             sleep(wait)
             next
           else
