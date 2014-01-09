@@ -79,11 +79,11 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
     $disable_transaction || execute('BEGIN')
   end
 
-   def commit_db_transaction
+  def commit_db_transaction
     $disable_transaction || execute('COMMIT')
-   end
+  end
 
-   def rollback_db_transaction
+  def rollback_db_transaction
     $disable_transaction || execute('ROLLBACK')
   end
 end
