@@ -246,13 +246,7 @@ describe 'activerecord-mysql-reconnect' do
     mysql2_error('Lost connection to MySQL server during query') do
       expect {
         th = thread_run {|do_stop|
-          emp = Employee.create(
-                  :emp_no     => 1,
-                  :birth_date => Time.now,
-                  :first_name => "' + sleep(15) + '",
-                  :last_name  => 'Tiger',
-                  :hire_date  => Time.now
-                )
+          ActiveRecord::Base.connection.execute("INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', 1, '' + sleep(15) + '', '2014-01-09 03:22:25', 'Tiger')")
         }
 
         mysql_restart
