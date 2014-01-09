@@ -28,15 +28,22 @@ module Activerecord::Mysql::Reconnect
     Mysql2::Error,
   ]
 
-  HANDLE_ERROR_MESSAGES = [
+  HANDLE_R_ERROR_MESSAGES = [
+    'Lost connection to MySQL server during query',
+  ]
+
+  HANDLE_RW_ERROR_MESSAGES = [
     'MySQL server has gone away',
     'Server shutdown in progress',
     'closed MySQL connection',
     "Can't connect to MySQL server",
     'Query execution was interrupted',
     'Access denied for user',
-    'Lost connection to MySQL server during query',
   ]
+
+  HANDLE_ERROR_MESSAGES = HANDLE_R_ERROR_MESSAGES + HANDLE_RW_ERROR_MESSAGES
+
+  READ_SQL_REGEXP = /\A\s*(?:SELECT|SHOW|SET)\b/i
 
   class << self
     def execution_tries
@@ -51,18 +58,22 @@ module Activerecord::Mysql::Reconnect
       !!ActiveRecord::Base.enable_retry
     end
 
+    def retry_read_only
+      !!ActiveRecord::Base.retry_read_only
+    end
+
     def retryable(opts)
-      block = opts.fetch(:proc)
-      on_error = opts[:on_error]
-      tries = self.execution_tries
-      retval = nil
+      block     = opts.fetch(:proc)
+      on_error  = opts[:on_error]
+      tries     = self.execution_tries
+      retval    = nil
 
       retryable_loop(tries) do |n|
         begin
           retval = block.call
           break
         rescue => e
-          if enable_retry and (tries.zero? or n < tries) and should_handle?(e)
+          if enable_retry and (tries.zero? or n < tries) and should_handle?(e, opts)
             on_error.call if on_error
             wait = self.execution_retry_wait * n
             logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds. (cause: #{e} [#{e.class}])")
@@ -124,10 +135,29 @@ module Activerecord::Mysql::Reconnect
       end
     end
 
-    def should_handle?(e)
-      !without_retry? &&
-      HANDLE_ERROR.any? {|i| e.kind_of?(i) } &&
-      Regexp.union(HANDLE_ERROR_MESSAGES) =~ e.message
+    def should_handle?(e, opts = {})
+      sql       = opts[:sql]
+      read_only = opts[:read_only]
+
+      if without_retry?
+        return false
+      end
+
+      unless HANDLE_ERROR.any? {|i| e.kind_of?(i) }
+        return false
+      end
+
+      unless Regexp.union(HANDLE_ERROR_MESSAGES) =~ e.message
+        return false
+      end
+
+      if sql and READ_SQL_REGEXP !~ sql
+        if read_only or Regexp.union(HANDLE_R_ERROR_MESSAGES) =~ e.message
+          return false
+        end
+      end
+
+      return true
     end
   end # end of class methods
 end

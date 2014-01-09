@@ -35,7 +35,9 @@ class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
         end
 
         sql_names = merge_transaction(sql, name)
-      }
+      },
+      :sql => sql,
+      :read_only => Activerecord::Mysql::Reconnect.retry_read_only
     )
   end
 
