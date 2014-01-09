@@ -4,17 +4,17 @@ require 'mysql2'
 class Employee < ActiveRecord::Base; end
 
 def mysql_start
-  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_START'] || 'sudo /etc/init.d/mysql start'
+  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_START'] || 'sudo service mysql start'
   system(cmd)
 end
 
 def mysql_stop
-  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_STOP'] || 'sudo /etc/init.d/mysql stop'
+  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_STOP'] || 'sudo service mysql stop'
   system(cmd)
 end
 
 def mysql_restart
-  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART'] || 'sudo killall -9 mysqld; sleep 3; sudo /etc/init.d/mysql restart; true'
+  cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART'] || 'sudo killall -9 mysqld; sleep 3; sudo service mysql restart'
   system(cmd)
 end
 
