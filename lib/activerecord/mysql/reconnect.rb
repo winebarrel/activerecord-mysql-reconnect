@@ -11,7 +11,8 @@ require 'active_support'
 
 require 'activerecord/mysql/reconnect/version'
 require 'activerecord/mysql/reconnect/base_ext'
-require 'activerecord/mysql/reconnect/abstract_adapter_ext'
+# XXX:
+#require 'activerecord/mysql/reconnect/abstract_adapter_ext'
 require 'activerecord/mysql/reconnect/abstract_mysql_adapter_ext'
 require 'activerecord/mysql/reconnect/mysql2_adapter_ext'
 require 'activerecord/mysql/reconnect/connection_pool_ext'
