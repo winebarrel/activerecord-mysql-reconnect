@@ -246,13 +246,15 @@ describe 'activerecord-mysql-reconnect' do
     expect {
       th = thread_run {|do_stop|
         mysql2_error('Lost connection to MySQL server during query') do
-          emp = Employee.create(
-                  :emp_no     => 1,
-                  :birth_date => Time.now,
-                  :first_name => "' + sleep(15) + '",
-                  :last_name  => 'Tiger',
-                  :hire_date  => Time.now
-                )
+          disable_transaction do
+            emp = Employee.create(
+                    :emp_no     => 1,
+                    :birth_date => Time.now,
+                    :first_name => "' + sleep(15) + '",
+                    :last_name  => 'Tiger',
+                    :hire_date  => Time.now
+                  )
+          end
         end
       }
 
