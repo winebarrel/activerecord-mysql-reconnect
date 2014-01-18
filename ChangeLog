@@ -1,4 +1,4 @@
-ctiverecord-mysql-reconnect 0.3.3 (January 18, 2014)
+activerecord-mysql-reconnect 0.3.3 (January 18, 2014)
 
 	* use BigDecimal for sleep
 	* add handling error ('The MySQL server is running with the --read-only...')
