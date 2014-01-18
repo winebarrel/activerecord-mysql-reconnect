@@ -1,5 +1,6 @@
 require 'mysql2'
 require 'logger'
+require 'bigdecimal'
 
 require 'active_record'
 require 'active_record/base'
@@ -56,7 +57,8 @@ module Activerecord::Mysql::Reconnect
     end
 
     def execution_retry_wait
-      ActiveRecord::Base.execution_retry_wait || DEFAULT_EXECUTION_RETRY_WAIT
+      wait = ActiveRecord::Base.execution_retry_wait || DEFAULT_EXECUTION_RETRY_WAIT
+      wait.kind_of?(BigDecimal) ? wait : BigDecimal(wait.to_s)
     end
 
     def enable_retry
