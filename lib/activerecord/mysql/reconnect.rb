@@ -99,7 +99,7 @@ module Activerecord::Mysql::Reconnect
               opt_msgs << 'connection: ' + [:host, :database, :username].map {|k| "#{k}=#{conn.query_options[k]}" }.join(";")
             end
 
-            logger.warn("MySQL server has gone away. Trying to reconnect in #{wait} seconds. (#{opt_msgs.join(', ')})")
+            logger.warn("MySQL server has gone away. Trying to reconnect in #{wait.to_f} seconds. (#{opt_msgs.join(', ')})")
             sleep(wait)
             next
           else
