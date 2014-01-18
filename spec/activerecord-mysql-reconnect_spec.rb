@@ -281,4 +281,14 @@ describe 'activerecord-mysql-reconnect' do
       }.to_not raise_error
     end
   end
+
+  it 'read-only=1' do
+    mysql2_error('The MySQL server is running with the --read-only option so it cannot execute this statement:') do
+      expect {
+        expect(Employee.all.length).to eq(300024)
+        mysql_restart
+        expect(Employee.all.length).to eq(300024)
+      }.to_not raise_error
+    end
+  end
 end

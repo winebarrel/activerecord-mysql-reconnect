@@ -40,6 +40,7 @@ module Activerecord::Mysql::Reconnect
     "Can't connect to MySQL server",
     'Query execution was interrupted',
     'Access denied for user',
+    'The MySQL server is running with the --read-only option',
   ]
 
   HANDLE_ERROR_MESSAGES = HANDLE_R_ERROR_MESSAGES + HANDLE_RW_ERROR_MESSAGES
