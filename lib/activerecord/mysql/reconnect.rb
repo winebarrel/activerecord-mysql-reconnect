@@ -2,13 +2,10 @@ require 'mysql2'
 require 'logger'
 require 'bigdecimal'
 
-require 'active_record'
-require 'active_record/base'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/abstract_mysql_adapter'
 require 'active_record/connection_adapters/mysql2_adapter'
 require 'active_record/connection_adapters/abstract/connection_pool'
-require 'active_support'
 
 require 'activerecord/mysql/reconnect/version'
 require 'activerecord/mysql/reconnect/base_ext'
