@@ -2,6 +2,7 @@ require 'mysql2'
 require 'logger'
 require 'bigdecimal'
 
+require 'active_record'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/abstract_mysql_adapter'
 require 'active_record/connection_adapters/mysql2_adapter'
