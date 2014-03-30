@@ -270,11 +270,13 @@ describe 'activerecord-mysql-reconnect' do
   end
 
   it 'force retry' do
-    sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', 1, '' + sleep(10) + '', '2014-01-09 03:22:25', 'Tiger')"
+    sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', 1, 'Scott', '2014-01-09 03:22:25', 'Tiger')"
 
     expect {
       ActiveRecord::Base.connection.execute(sql)
     }.to_not raise_error
+
+    lock_table
 
     mysql2_error('Lost connection to MySQL server during query') do
       expect {
