@@ -22,7 +22,8 @@ Or install it yourself as:
 ## Usage
 
 ```ruby
-require 'activerecord/mysql/reconnect'
+require 'active_record'
+require 'activerecord-mysql-reconnect'
 require 'logger'
 
 ActiveRecord::Base.establish_connection(
