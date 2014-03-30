@@ -100,11 +100,21 @@ RSpec.configure do |config|
     if ENV['ACTIVERECORD_MYSQL_RECONNECT_ENGINE']
       engine = ENV['ACTIVERECORD_MYSQL_RECONNECT_ENGINE']
       employees_sql = File.expand_path('../employees.sql', __FILE__)
-      system("sed -i.bak '17s/InnoDB/#{engine}/' #{employees_sql}")
+      system("sed -i.bak '17s/ENGINE=[^ ]*/ENGINE=#{engine}/' #{employees_sql}")
     end
   end
 
   config.before(:each) do
+    desc = example.metadata[:full_description]
+    puts <<-EOS
+
+
+#{'#' * (desc.length + 4)}
+# #{desc} #
+#{'#' * (desc.length + 4)}
+
+    EOS
+
     employees_sql = File.expand_path('../employees.sql', __FILE__)
     system("mysql -u root < #{employees_sql}")
 
