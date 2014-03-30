@@ -53,7 +53,7 @@ Stopping mysqld:                                           [  OK  ]
 Starting mysqld:                                           [  OK  ]
    (0.4ms)  SELECT COUNT(*) FROM `employees`
 Mysql2::Error: MySQL server has gone away: SELECT COUNT(*) FROM `employees`
-MySQL server has gone away. Trying to reconnect in 0.5 seconds.
+MySQL server has gone away. Trying to reconnect in 0.5 seconds. (cause: Mysql2::Error: MySQL server has gone away: SELECT COUNT(*) FROM `employees` [ActiveRecord::StatementInvalid], connection: host=127.0.0.1;database=employees;username=root)
    (101.5ms)  SELECT COUNT(*) FROM `employees`
 300024
 ```
