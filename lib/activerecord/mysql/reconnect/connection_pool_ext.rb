@@ -3,7 +3,8 @@ class ActiveRecord::ConnectionAdapters::ConnectionPool
     Activerecord::Mysql::Reconnect.retryable(
       :proc => proc {
         new_connection_without_retry
-      }
+      },
+      :connection => spec.config,
     )
   end
 
