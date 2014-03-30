@@ -224,12 +224,14 @@ describe 'activerecord-mysql-reconnect' do
   it 'read only (write)' do
     enable_read_only do
       expect {
+        lock_table
+
         th = thread_run {|do_stop|
           mysql2_error('MySQL server has gone away') do
             emp = Employee.create(
                     :emp_no     => 1,
                     :birth_date => Time.now,
-                    :first_name => "' + sleep(15) + '",
+                    :first_name => 'Scott',
                     :last_name  => 'Tiger',
                     :hire_date  => Time.now
                   )
@@ -243,11 +245,13 @@ describe 'activerecord-mysql-reconnect' do
   end
 
   it 'lost connection' do
-    sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', 1, '' + sleep(15) + '', '2014-01-09 03:22:25', 'Tiger')"
+    sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', 1, 'Scott', '2014-01-09 03:22:25', 'Tiger')"
 
     expect {
       ActiveRecord::Base.connection.execute(sql)
     }.to_not raise_error
+
+    lock_table
 
     mysql2_error('Lost connection to MySQL server during query') do
       expect {

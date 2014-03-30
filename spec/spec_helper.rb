@@ -84,6 +84,17 @@ def thread_run
   return th
 end
 
+def lock_table
+  Thread.start do
+    begin
+      ActiveRecord::Base.connection.execute("LOCK TABLES employees WRITE")
+    rescue Exception
+    end
+  end
+
+  sleep 3
+end
+
 RSpec.configure do |config|
   config.before(:each) do
     employees_sql = File.expand_path('../employees.sql', __FILE__)
