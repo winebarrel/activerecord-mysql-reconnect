@@ -75,6 +75,20 @@ module Activerecord::Mysql::Reconnect
       @activerecord_mysql_reconnect_retry_mode || DEFAULT_RETRY_MODE
     end
 
+    def retry_databases=(v)
+      v ||= []
+
+      unless v.kind_of?(Array)
+        v = [v]
+      end
+
+      @activerecord_mysql_reconnect_retry_databases = v.map {|i| i.to_s }
+    end
+
+    def retry_databases
+      @activerecord_mysql_reconnect_retry_databases || []
+    end
+
     def retryable(opts)
       block     = opts.fetch(:proc)
       on_error  = opts[:on_error]
@@ -94,14 +108,7 @@ module Activerecord::Mysql::Reconnect
             opt_msgs = ["cause: #{e} [#{e.class}]"]
 
             if conn
-              conn_info = {}
-
-              if conn.kind_of?(Mysql2::Client)
-                [:host, :database, :username].each {|k| conn_info[k] = conn.query_options[k] }
-              elsif conn.kind_of?(Hash)
-                conn_info = conn
-              end
-
+              conn_info = connection_info(conn)
               opt_msgs << 'connection: ' + [:host, :database, :username].map {|k| "#{k}=#{conn_info[k]}" }.join(";")
             end
 
@@ -167,9 +174,15 @@ module Activerecord::Mysql::Reconnect
     def should_handle?(e, opts = {})
       sql        = opts[:sql]
       retry_mode = opts[:retry_mode]
+      conn       = opts[:connection]
 
       if without_retry?
         return false
+      end
+
+      if conn and not retry_databases.empty?
+        conn_info = connection_info(conn)
+        return false unless retry_databases.include?(conn_info[:database])
       end
 
       unless HANDLE_ERROR.any? {|i| e.kind_of?(i) }
@@ -191,6 +204,18 @@ module Activerecord::Mysql::Reconnect
       end
 
       return true
+    end
+
+    def connection_info(conn)
+      conn_info = {}
+
+      if conn.kind_of?(Mysql2::Client)
+        [:host, :database, :username].each {|k| conn_info[k] = conn.query_options[k] }
+      elsif conn.kind_of?(Hash)
+        conn_info = conn.dup
+      end
+
+      return conn_info
     end
   end # end of class methods
 end

@@ -90,6 +90,7 @@ gem 'activerecord-mysql-reconnect'
 MyApp::Application.configure do
   ...
   config.active_record.enable_retry = true
+  config.active_record.retry_databases = :employees # or [:employees], ['employees']
   config.active_record.execution_tries = 10 # times
   config.active_record.execution_retry_wait = 1.5 # sec
   config.active_record.retry_mode = :rw # default: `:r`, valid values: `:r`, `:rw`, `:force`

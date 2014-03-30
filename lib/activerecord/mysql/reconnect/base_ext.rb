@@ -15,6 +15,14 @@ class ActiveRecord::Base
        Activerecord::Mysql::Reconnect.retry_mode
     end
 
+    def retry_databases=(v)
+       Activerecord::Mysql::Reconnect.retry_databases = v
+    end
+
+    def retry_databases
+       Activerecord::Mysql::Reconnect.retry_databases
+    end
+
     def without_retry
       Activerecord::Mysql::Reconnect.without_retry do
         yield
