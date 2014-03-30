@@ -88,77 +88,81 @@ describe 'activerecord-mysql-reconnect' do
   end
 
   it 'transaction' do
-    expect {
-      expect(Employee.count).to eq(300024)
+    unless /MyISAM/i =~ ENV['ACTIVERECORD_MYSQL_RECONNECT_ENGINE']
+      expect {
+        expect(Employee.count).to eq(300024)
 
-      mysql2_error('MySQL server has gone away') do
-        ActiveRecord::Base.transaction do
-          emp = Employee.create(
-                  :emp_no     => 1,
-                  :birth_date => Time.now,
-                  :first_name => 'Scott',
-                  :last_name  => 'Tiger',
-                  :hire_date  => Time.now
-                )
-          expect(emp.id).to eq(300025)
-          expect(emp.emp_no).to eq(1)
-          mysql_restart
-          emp = Employee.create(
-                  :emp_no     => 2,
-                  :birth_date => Time.now,
-                  :first_name => 'Scott',
-                  :last_name  => 'Tiger',
-                  :hire_date  => Time.now
-                )
-          expect(emp.id).to eq(300025)
-          expect(emp.emp_no).to eq(2)
+        mysql2_error('MySQL server has gone away') do
+          ActiveRecord::Base.transaction do
+            emp = Employee.create(
+                    :emp_no     => 1,
+                    :birth_date => Time.now,
+                    :first_name => 'Scott',
+                    :last_name  => 'Tiger',
+                    :hire_date  => Time.now
+                  )
+            expect(emp.id).to eq(300025)
+            expect(emp.emp_no).to eq(1)
+            mysql_restart
+            emp = Employee.create(
+                    :emp_no     => 2,
+                    :birth_date => Time.now,
+                    :first_name => 'Scott',
+                    :last_name  => 'Tiger',
+                    :hire_date  => Time.now
+                  )
+            expect(emp.id).to eq(300025)
+            expect(emp.emp_no).to eq(2)
+          end
         end
-      end
 
-      expect(Employee.count).to eq(300025)
-    }.to_not raise_error
+        expect(Employee.count).to eq(300025)
+      }.to_not raise_error
+    end
   end
 
   it 'retryable_transaction' do
-    expect {
-      expect(Employee.count).to eq(300024)
+    unless /MyISAM/i =~ ENV['ACTIVERECORD_MYSQL_RECONNECT_ENGINE']
+      expect {
+        expect(Employee.count).to eq(300024)
 
-      mysql2_error('MySQL server has gone away') do
-        ActiveRecord::Base.retryable_transaction do
-          emp = Employee.create(
-                  :emp_no     => 1,
-                  :birth_date => Time.now,
-                  :first_name => 'Scott',
-                  :last_name  => 'Tiger',
-                  :hire_date  => Time.now
-                )
-          expect(emp.id).to eq(300025)
-          expect(emp.emp_no).to eq(1)
-          mysql_restart
-          emp = Employee.create(
-                  :emp_no     => 2,
-                  :birth_date => Time.now,
-                  :first_name => 'Scott',
-                  :last_name  => 'Tiger',
-                  :hire_date  => Time.now
-                )
-          expect(emp.id).to eq(300026)
-          expect(emp.emp_no).to eq(2)
-          mysql_restart
-          emp = Employee.create(
-                  :emp_no     => 3,
-                  :birth_date => Time.now,
-                  :first_name => 'Scott',
-                  :last_name  => 'Tiger',
-                  :hire_date  => Time.now
-                )
-          expect(emp.id).to eq(300027)
-          expect(emp.emp_no).to eq(3)
+        mysql2_error('MySQL server has gone away') do
+          ActiveRecord::Base.retryable_transaction do
+            emp = Employee.create(
+                    :emp_no     => 1,
+                    :birth_date => Time.now,
+                    :first_name => 'Scott',
+                    :last_name  => 'Tiger',
+                    :hire_date  => Time.now
+                  )
+            expect(emp.id).to eq(300025)
+            expect(emp.emp_no).to eq(1)
+            mysql_restart
+            emp = Employee.create(
+                    :emp_no     => 2,
+                    :birth_date => Time.now,
+                    :first_name => 'Scott',
+                    :last_name  => 'Tiger',
+                    :hire_date  => Time.now
+                  )
+            expect(emp.id).to eq(300026)
+            expect(emp.emp_no).to eq(2)
+            mysql_restart
+            emp = Employee.create(
+                    :emp_no     => 3,
+                    :birth_date => Time.now,
+                    :first_name => 'Scott',
+                    :last_name  => 'Tiger',
+                    :hire_date  => Time.now
+                  )
+            expect(emp.id).to eq(300027)
+            expect(emp.emp_no).to eq(3)
+          end
         end
-      end
 
-      expect(Employee.count).to eq(300027)
-    }.to_not raise_error
+        expect(Employee.count).to eq(300027)
+      }.to_not raise_error
+    end
   end
 
   it 'retry new connection' do

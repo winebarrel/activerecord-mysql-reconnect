@@ -96,6 +96,14 @@ def lock_table
 end
 
 RSpec.configure do |config|
+  config.before(:all) do
+    if ENV['ACTIVERECORD_MYSQL_RECONNECT_ENGINE']
+      engine = ENV['ACTIVERECORD_MYSQL_RECONNECT_ENGINE']
+      employees_sql = File.expand_path('../employees.sql', __FILE__)
+      system("sed -i.bak '17s/InnoDB/#{engine}/' #{employees_sql}")
+    end
+  end
+
   config.before(:each) do
     employees_sql = File.expand_path('../employees.sql', __FILE__)
     system("mysql -u root < #{employees_sql}")
