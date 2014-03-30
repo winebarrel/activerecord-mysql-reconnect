@@ -18,7 +18,7 @@ describe 'activerecord-mysql-reconnect' do
   it 'on select' do
     expect {
       th = thread_run {|do_stop|
-        expect(Employee.where(:id => 1).pluck('sleep(15) * 0')).to eq([0])
+        expect(Employee.where(:id => 1).pluck('sleep(10) * 0')).to eq([0])
       }
 
       mysql_restart
@@ -36,7 +36,7 @@ describe 'activerecord-mysql-reconnect' do
           emp = Employee.create(
                   :emp_no     => 1,
                   :birth_date => Time.now,
-                  :first_name => "' + sleep(15) + '",
+                  :first_name => "' + sleep(10) + '",
                   :last_name  => 'Tiger',
                   :hire_date  => Time.now
                 )
@@ -58,7 +58,7 @@ describe 'activerecord-mysql-reconnect' do
     expect {
       th = thread_run {|do_stop|
         emp = Employee.where(:id => 1).first
-        emp.first_name = "' + sleep(15) + '"
+        emp.first_name = "' + sleep(10) + '"
         emp.last_name = 'ZapZapZap'
 
         mysql2_error('MySQL server has gone away') do
@@ -177,7 +177,7 @@ describe 'activerecord-mysql-reconnect' do
     expect {
       th = thread_run {|do_stop|
         mysql_stop
-        sleep 15
+        sleep 10
         mysql_start
       }
 
@@ -190,7 +190,7 @@ describe 'activerecord-mysql-reconnect' do
     expect {
       th = thread_run {|do_stop|
         mysql_stop
-        sleep 15
+        sleep 10
         mysql_start
       }
 
@@ -270,7 +270,7 @@ describe 'activerecord-mysql-reconnect' do
   end
 
   it 'force retry' do
-    sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', 1, '' + sleep(15) + '', '2014-01-09 03:22:25', 'Tiger')"
+    sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', 1, '' + sleep(10) + '', '2014-01-09 03:22:25', 'Tiger')"
 
     expect {
       ActiveRecord::Base.connection.execute(sql)

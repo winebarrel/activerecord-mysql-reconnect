@@ -104,6 +104,11 @@ RSpec.configure do |config|
     end
   end
 
+  config.after(:all) do
+    employees_sql = File.expand_path('../employees.sql', __FILE__)
+    system("git checkout #{employees_sql}")
+  end
+
   config.before(:each) do
     desc = example.metadata[:full_description]
     puts <<-EOS
