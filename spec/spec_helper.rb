@@ -67,6 +67,16 @@ def force_retry
   end
 end
 
+def retry_databases(dbs)
+  begin
+    expect(ActiveRecord::Base.retry_databases).to eq([])
+    ActiveRecord::Base.retry_databases = dbs
+    yield
+  ensure
+    ActiveRecord::Base.retry_databases = []
+  end
+end
+
 def thread_run
   thread_running = false
   do_stop = proc { thread_running = false }

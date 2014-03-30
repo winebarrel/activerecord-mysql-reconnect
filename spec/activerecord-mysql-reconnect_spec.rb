@@ -299,4 +299,20 @@ describe 'activerecord-mysql-reconnect' do
       }.to_not raise_error
     end
   end
+
+  it 'retry specific database' do
+    retry_databases(:employees2) do
+      expect {
+        expect(Employee.all.length).to eq(300024)
+        mysql_restart
+        expect(Employee.all.length).to eq(300024)
+      }.to raise_error(ActiveRecord::StatementInvalid)
+    end
+
+    expect {
+      expect(Employee.all.length).to eq(300024)
+      mysql_restart
+      expect(Employee.all.length).to eq(300024)
+    }.to_not raise_error
+  end
 end
