@@ -93,8 +93,16 @@ module Activerecord::Mysql::Reconnect
 
             opt_msgs = ["cause: #{e} [#{e.class}]"]
 
-            if conn and conn.kind_of?(Mysql2::Client)
-              opt_msgs << 'connection: ' + [:host, :database, :username].map {|k| "#{k}=#{conn.query_options[k]}" }.join(";")
+            if conn
+              conn_info = {}
+
+              if conn.kind_of?(Mysql2::Client)
+                [:host, :database, :username].each {|k| conn_info[k] = conn.query_options[k] }
+              elsif conn.kind_of?(Hash)
+                conn_info = conn
+              end
+
+              opt_msgs << 'connection: ' + [:host, :database, :username].map {|k| "#{k}=#{conn_info[k]}" }.join(";")
             end
 
             logger.warn("MySQL server has gone away. Trying to reconnect in #{wait.to_f} seconds. (#{opt_msgs.join(', ')})")
