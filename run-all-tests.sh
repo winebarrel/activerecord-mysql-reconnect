@@ -43,3 +43,4 @@ banner `bundle exec ruby -e 'require "active_record"; puts ActiveRecord::VERSION
 bundle exec rake
 
 git checkout activerecord-mysql-reconnect.gemspec
+rm *.bak spec/*.bak
