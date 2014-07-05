@@ -39,7 +39,7 @@ end
 
 def disable_retry
   begin
-    expect(ActiveRecord::Base.enable_retry).to be_true
+    expect(ActiveRecord::Base.enable_retry).to be_truthy
     ActiveRecord::Base.enable_retry = false
     yield
   ensure
@@ -89,7 +89,7 @@ def thread_run
 
   th.abort_on_exception = true
   sleep 3
-  expect(thread_running).to be_true
+  expect(thread_running).to be_truthy
 
   return th
 end
@@ -120,7 +120,7 @@ RSpec.configure do |config|
   end
 
   config.before(:each) do
-    desc = example.metadata[:full_description]
+    desc = RSpec.current_example.metadata[:full_description]
     puts <<-EOS
 
 
