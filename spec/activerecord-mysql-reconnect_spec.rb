@@ -54,6 +54,37 @@ describe 'activerecord-mysql-reconnect' do
     }.to_not raise_error
   end
 
+  [
+    "Lost connection to MySQL server at 'reading initial communication packet'",
+  ].each do |errmsg|
+    it "on error: #{errmsg}" do
+      expect {
+        th = thread_run {|do_stop|
+          emp = nil
+
+          mysql2_error("x#{errmsg}x") do
+            emp = Employee.create(
+                    :emp_no     => 1,
+                    :birth_date => Time.now,
+                    :first_name => "' + sleep(10) + '",
+                    :last_name  => 'Tiger',
+                    :hire_date  => Time.now
+                  )
+          end
+
+          do_stop.call
+
+          expect(emp.id).to eq(300025)
+          expect(emp.emp_no).to eq(1)
+        }
+
+        mysql_restart
+        expect(Employee.count).to be >= 300024
+        th.join
+      }.to_not raise_error
+    end
+  end
+
   it 'op update' do
     expect {
       th = thread_run {|do_stop|
