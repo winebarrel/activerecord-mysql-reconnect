@@ -94,6 +94,33 @@ describe 'activerecord-mysql-reconnect' do
     end
   end
 
+  it "on unhandled error" do
+    expect {
+      th = thread_run {|do_stop|
+        emp = nil
+
+        mysql2_error("unhandled error") do
+          emp = Employee.create(
+                  :emp_no     => 1,
+                  :birth_date => Time.now,
+                  :first_name => "' + sleep(10) + '",
+                  :last_name  => 'Tiger',
+                  :hire_date  => Time.now
+                )
+        end
+
+        do_stop.call
+
+        expect(emp.id).to eq(300025)
+        expect(emp.emp_no).to eq(1)
+      }
+
+      mysql_restart
+      expect(Employee.count).to be >= 300024
+      th.join
+    }.to raise_error
+  end
+
   it 'op update' do
     expect {
       th = thread_run {|do_stop|
