@@ -55,6 +55,15 @@ describe 'activerecord-mysql-reconnect' do
   end
 
   [
+    'MySQL server has gone away',
+    'Server shutdown in progress',
+    'closed MySQL connection',
+    "Can't connect to MySQL server",
+    'Query execution was interrupted',
+    'Access denied for user',
+    'The MySQL server is running with the --read-only option',
+    "Can't connect to local MySQL server", # When running in local sandbox, or using a socket file
+    'Unknown MySQL server host', # For DNS blips
     "Lost connection to MySQL server at 'reading initial communication packet'",
   ].each do |errmsg|
     it "on error: #{errmsg}" do
