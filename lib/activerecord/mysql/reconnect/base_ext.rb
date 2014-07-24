@@ -23,6 +23,14 @@ class ActiveRecord::Base
        Activerecord::Mysql::Reconnect.retry_databases
     end
 
+    def retry_hosts=(v)
+       Activerecord::Mysql::Reconnect.retry_hosts = v
+    end
+
+    def retry_hosts
+       Activerecord::Mysql::Reconnect.retry_hosts
+    end
+
     def without_retry
       Activerecord::Mysql::Reconnect.without_retry do
         yield

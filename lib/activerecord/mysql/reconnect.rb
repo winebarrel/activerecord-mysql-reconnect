@@ -92,6 +92,20 @@ module Activerecord::Mysql::Reconnect
       @activerecord_mysql_reconnect_retry_databases || []
     end
 
+    def retry_hosts=(v)
+      v ||= []
+
+      unless v.kind_of?(Array)
+        v = [v]
+      end
+
+      @activerecord_mysql_reconnect_retry_hosts = v.map {|i| i.to_s }
+    end
+
+    def retry_hosts
+      @activerecord_mysql_reconnect_retry_hosts || []
+    end
+
     def retryable(opts)
       block     = opts.fetch(:proc)
       on_error  = opts[:on_error]
@@ -183,9 +197,14 @@ module Activerecord::Mysql::Reconnect
         return false
       end
 
-      if conn and not retry_databases.empty?
-        conn_info = connection_info(conn)
-        return false unless retry_databases.include?(conn_info[:database])
+      if conn
+        if not retry_databases.empty?
+          conn_info = connection_info(conn)
+          return false unless retry_databases.include?(conn_info[:database])
+        elsif not retry_hosts.empty?
+          conn_info = connection_info(conn)
+          return false unless retry_hosts.include?(conn_info[:host])
+        end
       end
 
       unless HANDLE_ERROR.any? {|i| e.kind_of?(i) }
