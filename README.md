@@ -90,7 +90,8 @@ gem 'activerecord-mysql-reconnect'
 MyApp::Application.configure do
   ...
   config.active_record.enable_retry = true
-  #config.active_record.retry_databases = :employees # or [:employees], ['employees']
+  #config.active_record.retry_databases = :employees # or 'employees', [:employees], ['employees']
+  #config.active_record.retry_hosts = :localhost # or 'localhost', [:localhost], ['localhost', '192.16.1.1']
   # retry_databases -> nil: retry all databases (default)
   config.active_record.execution_tries = 10 # times
   # execution_tries -> 0: retry indefinitely
