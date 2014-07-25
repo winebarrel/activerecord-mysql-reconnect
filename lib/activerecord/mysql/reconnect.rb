@@ -87,14 +87,19 @@ module Activerecord::Mysql::Reconnect
       end
 
       @activerecord_mysql_reconnect_retry_databases = v.map do |database|
-        host = nil
-        database = database.to_s
+        if database.instance_of?(Symbol)
+          database = Regexp.escape(database.to_s)
+          [nil, /\A#{database}\z/]
+        else
+          host = nil
+          database = database.to_s
 
-        if database =~ /:/
-          host, database = database.split(':', 2)
+          if database =~ /:/
+            host, database = database.split(':', 2)
+          end
+
+          [create_pattern_match_regex(host), create_pattern_match_regex(database)]
         end
-
-        [create_pattern_match_regex(host), create_pattern_match_regex(database)]
       end
     end
 

@@ -372,6 +372,7 @@ describe 'activerecord-mysql-reconnect' do
   [
     :employees2,
     '127.0.0.2:employees',
+    '127.0.0.\_:employees',
   ].each do |db|
     it "retry specific database: #{db}" do
       retry_databases(db) do
@@ -393,6 +394,7 @@ describe 'activerecord-mysql-reconnect' do
   [
     :employees,
     '127.0.0.1:employees',
+    '127.0.0._:e%',
   ].each do |db|
     it "retry specific database: #{db}" do
       retry_databases(db) do
