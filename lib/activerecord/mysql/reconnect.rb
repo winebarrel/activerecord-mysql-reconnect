@@ -94,7 +94,7 @@ module Activerecord::Mysql::Reconnect
         end
 
         [host, database]
-      }
+      end
     end
 
     def retry_databases
@@ -233,6 +233,12 @@ module Activerecord::Mysql::Reconnect
       end
 
       return conn_info
+    end
+
+    private
+
+    def create_pattern_match_regex(str)
+
     end
   end # end of class methods
 end
