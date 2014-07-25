@@ -93,7 +93,7 @@ MyApp::Application.configure do
   #config.active_record.retry_databases = :employees
   # e.g. [:employees]
   #      ['employees', 'localhost:test', '192.168.1.1:users']
-  #      ['prefix_%:employees']
+  #      ['192.168.%:emp\_all']
   #      ['emp%']
   # retry_databases -> nil: retry all databases (default)
   config.active_record.execution_tries = 10 # times
