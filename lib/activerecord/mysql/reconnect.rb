@@ -85,7 +85,16 @@ module Activerecord::Mysql::Reconnect
         v = [v]
       end
 
-      @activerecord_mysql_reconnect_retry_databases = v.map {|i| i.to_s }
+      @activerecord_mysql_reconnect_retry_databases = v.map do |database|
+        host = nil
+        database = database.to_s
+
+        if database =~ /:/
+          host, database = database.split(':')
+        end
+
+        [host, database]
+      }
     end
 
     def retry_databases
@@ -186,13 +195,7 @@ module Activerecord::Mysql::Reconnect
       if conn and not retry_databases.empty?
         conn_info = connection_info(conn)
 
-        included = retry_databases.any? do |database|
-          if database =~ /:/
-            host, database = database.split(':')
-          else
-            host = nil
-          end
-
+        included = retry_databases.any? do |host, database|
           (host.nil? or host == conn_info[:host]) and database == conn_info[:database]
         end
 
