@@ -1,6 +1,7 @@
 require 'mysql2'
 require 'logger'
 require 'bigdecimal'
+require 'strscan'
 
 require 'active_record'
 require 'active_record/connection_adapters/abstract_adapter'
@@ -93,7 +94,7 @@ module Activerecord::Mysql::Reconnect
           host, database = database.split(':', 2)
         end
 
-        [host, database]
+        [create_pattern_match_regex(host), create_pattern_match_regex(database)]
       end
     end
 
@@ -196,7 +197,7 @@ module Activerecord::Mysql::Reconnect
         conn_info = connection_info(conn)
 
         included = retry_databases.any? do |host, database|
-          (host.nil? or host == conn_info[:host]) and database == conn_info[:database]
+          host =~ conn_info[:host] and database =~ conn_info[:database]
         end
 
         return false unless included
@@ -238,7 +239,26 @@ module Activerecord::Mysql::Reconnect
     private
 
     def create_pattern_match_regex(str)
+      return // unless str
 
+      ss = StringScanner.new(str)
+      buf = []
+
+      while ss.eos?
+        if (tok = ss.scan(/[^\\%_]+/))
+          buf << Regexp.escape(tok)
+        elsif (tok = ss.scan(/\\/))
+          buf << Regexp.escape(ss.getch)
+        elsif (tok = ss.scan(/%/))
+          buf << '.*'
+        elsif (tok = ss.scan(/_/))
+          buf << '.'
+        else
+          raise 'must not happen'
+        end
+      end
+
+      /\A#{buf.join}\z/
     end
   end # end of class methods
 end
