@@ -89,7 +89,7 @@ module Activerecord::Mysql::Reconnect
       @activerecord_mysql_reconnect_retry_databases = v.map do |database|
         if database.instance_of?(Symbol)
           database = Regexp.escape(database.to_s)
-          [nil, /\A#{database}\z/]
+          [/.*/, /\A#{database}\z/]
         else
           host = '%'
           database = database.to_s
