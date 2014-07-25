@@ -91,7 +91,7 @@ module Activerecord::Mysql::Reconnect
           database = Regexp.escape(database.to_s)
           [nil, /\A#{database}\z/]
         else
-          host = nil
+          host = '%'
           database = database.to_s
 
           if database =~ /:/
@@ -244,8 +244,6 @@ module Activerecord::Mysql::Reconnect
     private
 
     def create_pattern_match_regex(str)
-      return // unless str
-
       ss = StringScanner.new(str)
       buf = []
 
