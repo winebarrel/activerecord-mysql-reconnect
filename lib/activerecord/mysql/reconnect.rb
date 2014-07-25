@@ -90,7 +90,7 @@ module Activerecord::Mysql::Reconnect
         database = database.to_s
 
         if database =~ /:/
-          host, database = database.split(':')
+          host, database = database.split(':', 2)
         end
 
         [host, database]
