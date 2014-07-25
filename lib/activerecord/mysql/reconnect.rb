@@ -247,7 +247,7 @@ module Activerecord::Mysql::Reconnect
       ss = StringScanner.new(str)
       buf = []
 
-      while ss.eos?
+      until ss.eos?
         if (tok = ss.scan(/[^\\%_]+/))
           buf << Regexp.escape(tok)
         elsif (tok = ss.scan(/\\/))

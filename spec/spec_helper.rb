@@ -119,8 +119,8 @@ RSpec.configure do |config|
     system("git checkout #{employees_sql}")
   end
 
-  config.before(:each) do
-    desc = RSpec.current_example.metadata[:full_description]
+  config.before(:each) do |context|
+    desc = context.metadata[:full_description]
     puts <<-EOS
 
 
