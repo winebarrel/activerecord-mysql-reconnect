@@ -1,6 +1,7 @@
 require 'mysql2'
 require 'logger'
 require 'bigdecimal'
+require 'strscan'
 
 require 'active_record'
 require 'active_record/connection_adapters/abstract_adapter'
@@ -85,7 +86,21 @@ module Activerecord::Mysql::Reconnect
         v = [v]
       end
 
-      @activerecord_mysql_reconnect_retry_databases = v.map {|i| i.to_s }
+      @activerecord_mysql_reconnect_retry_databases = v.map do |database|
+        if database.instance_of?(Symbol)
+          database = Regexp.escape(database.to_s)
+          [/.*/, /\A#{database}\z/]
+        else
+          host = '%'
+          database = database.to_s
+
+          if database =~ /:/
+            host, database = database.split(':', 2)
+          end
+
+          [create_pattern_match_regex(host), create_pattern_match_regex(database)]
+        end
+      end
     end
 
     def retry_databases
@@ -185,7 +200,12 @@ module Activerecord::Mysql::Reconnect
 
       if conn and not retry_databases.empty?
         conn_info = connection_info(conn)
-        return false unless retry_databases.include?(conn_info[:database])
+
+        included = retry_databases.any? do |host, database|
+          host =~ conn_info[:host] and database =~ conn_info[:database]
+        end
+
+        return false unless included
       end
 
       unless HANDLE_ERROR.any? {|i| e.kind_of?(i) }
@@ -219,6 +239,29 @@ module Activerecord::Mysql::Reconnect
       end
 
       return conn_info
+    end
+
+    private
+
+    def create_pattern_match_regex(str)
+      ss = StringScanner.new(str)
+      buf = []
+
+      until ss.eos?
+        if (tok = ss.scan(/[^\\%_]+/))
+          buf << Regexp.escape(tok)
+        elsif (tok = ss.scan(/\\/))
+          buf << Regexp.escape(ss.getch)
+        elsif (tok = ss.scan(/%/))
+          buf << '.*'
+        elsif (tok = ss.scan(/_/))
+          buf << '.'
+        else
+          raise 'must not happen'
+        end
+      end
+
+      /\A#{buf.join}\z/
     end
   end # end of class methods
 end

@@ -369,19 +369,41 @@ describe 'activerecord-mysql-reconnect' do
     end
   end
 
-  it 'retry specific database' do
-    retry_databases(:employees2) do
+  [
+    :employees2,
+    '127.0.0.2:employees',
+    '127.0.0.\_:employees',
+  ].each do |db|
+    it "retry specific database: #{db}" do
+      retry_databases(db) do
+        expect {
+          expect(Employee.all.length).to eq(300024)
+          mysql_restart
+          expect(Employee.all.length).to eq(300024)
+        }.to raise_error(ActiveRecord::StatementInvalid)
+      end
+
       expect {
         expect(Employee.all.length).to eq(300024)
         mysql_restart
         expect(Employee.all.length).to eq(300024)
-      }.to raise_error(ActiveRecord::StatementInvalid)
+      }.to_not raise_error
     end
+  end
 
-    expect {
-      expect(Employee.all.length).to eq(300024)
-      mysql_restart
-      expect(Employee.all.length).to eq(300024)
-    }.to_not raise_error
+  [
+    :employees,
+    '127.0.0.1:employees',
+    '127.0.0._:e%',
+  ].each do |db|
+    it "retry specific database: #{db}" do
+      retry_databases(db) do
+        expect {
+          expect(Employee.all.length).to eq(300024)
+          mysql_restart
+          expect(Employee.all.length).to eq(300024)
+        }.to_not raise_error
+      end
+    end
   end
 end
