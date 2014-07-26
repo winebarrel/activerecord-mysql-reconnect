@@ -316,7 +316,7 @@ describe 'activerecord-mysql-reconnect' do
   end
 
   it 'lost connection' do
-    sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', 1, 'Scott', '2014-01-09 03:22:25', 'Tiger')"
+    sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', SLEEP(10), 'Scott', '2014-01-09 03:22:25', 'Tiger')"
 
     expect {
       ActiveRecord::Base.connection.execute(sql)
@@ -327,10 +327,10 @@ describe 'activerecord-mysql-reconnect' do
     mysql2_error('Lost connection to MySQL server during query') do
       expect {
         th = thread_run {|do_stop|
-          sleep 10
           ActiveRecord::Base.connection.execute(sql)
         }
 
+        sleep 3
         mysql_restart
         th.join
       }.to raise_error(ActiveRecord::StatementInvalid)
