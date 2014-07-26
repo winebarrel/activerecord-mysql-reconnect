@@ -2,6 +2,7 @@ language: ruby
 rvm:
 - 2.0.0
 script:
+- sudo apt-get -y install sysvbanner
 - banner `mysqld --version`
 - banner $ACTIVERECORD_MYSQL_RECONNECT_ENGINE
 - bundle install -j4
