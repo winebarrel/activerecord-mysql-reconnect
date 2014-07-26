@@ -327,6 +327,7 @@ describe 'activerecord-mysql-reconnect' do
     mysql2_error('Lost connection to MySQL server during query') do
       expect {
         th = thread_run {|do_stop|
+          sleep 10
           ActiveRecord::Base.connection.execute(sql)
         }
 
