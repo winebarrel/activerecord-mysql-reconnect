@@ -17,7 +17,7 @@ end
 
 def mysql_restart
   cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART'] || 'sudo killall -9 mysqld; sleep 3; sudo service mysql restart'
-  system("#{cmd} > /dev/null 2> /dev/null")
+  system("(#{cmd}) > /dev/null 2> /dev/null")
   puts "--- restart mysql ---"
 end
 
@@ -156,8 +156,6 @@ RSpec.configure do |config|
     EOS
 
     mysql_restart
-    sleep 10
-    ActiveRecord::Base.clear_all_connections!
     employees_sql = File.expand_path('../employees.sql', __FILE__)
     system("mysql -u root < #{employees_sql}")
 
