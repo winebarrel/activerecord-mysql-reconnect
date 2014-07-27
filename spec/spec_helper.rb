@@ -155,7 +155,6 @@ RSpec.configure do |config|
 
     EOS
 
-    mysql_restart
     employees_sql = File.expand_path('../employees.sql', __FILE__)
     system("mysql -u root < #{employees_sql}")
 
