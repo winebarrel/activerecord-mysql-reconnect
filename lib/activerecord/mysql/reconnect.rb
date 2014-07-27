@@ -109,12 +109,12 @@ module Activerecord::Mysql::Reconnect
       @activerecord_mysql_reconnect_retry_databases || []
     end
 
-    def retry_giveup_limit=(v)
-      @activerecord_mysql_reconnect_retry_giveup_limit = v
+    def retry_giveup_count=(v)
+      @activerecord_mysql_reconnect_retry_giveup_count = v
     end
 
-    def retry_giveup_limit
-      @activerecord_mysql_reconnect_retry_giveup_limit || 0
+    def retry_giveup_count
+      @activerecord_mysql_reconnect_retry_giveup_count || 0
     end
 
     def retryable(opts)
@@ -201,11 +201,11 @@ module Activerecord::Mysql::Reconnect
     private
 
     def give_up?
-      if retry_giveup_limit.zero?
+      if retry_giveup_count.zero?
         return false
       end
 
-      @@retry_failure_count < retry_giveup_limit
+      @@retry_failure_count >= retry_giveup_count
     end
 
     def retry_failed

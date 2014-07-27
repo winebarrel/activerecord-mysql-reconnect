@@ -77,6 +77,28 @@ def retry_databases(dbs)
   end
 end
 
+def retry_giveup_count(n)
+  retry_giveup_count_orig = ActiveRecord::Base.execution_tries
+
+  begin
+    ActiveRecord::Base.retry_giveup_count = n
+    yield
+  ensure
+    ActiveRecord::Base.retry_giveup_count = retry_giveup_count_orig
+  end
+end
+
+def execution_tries(n)
+  execution_tries_orig = ActiveRecord::Base.execution_tries
+
+  begin
+    ActiveRecord::Base.execution_tries = n
+    yield
+  ensure
+    ActiveRecord::Base.execution_tries = execution_tries_orig
+  end
+end
+
 def thread_run
   thread_running = false
   do_stop = proc { thread_running = false }
@@ -131,6 +153,7 @@ RSpec.configure do |config|
     EOS
 
     employees_sql = File.expand_path('../employees.sql', __FILE__)
+    mysql_start
     system("mysql -u root < #{employees_sql}")
 
     ActiveRecord::Base.establish_connection(

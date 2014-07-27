@@ -407,4 +407,63 @@ describe 'activerecord-mysql-reconnect' do
       end
     end
   end
+
+  it 'give up' do
+    retry_giveup_count(3) do
+      mysql_stop
+
+      3.times do
+        expect {
+          expect(Employee.all.length).to eq(300024)
+        }.to raise_error
+      end
+
+      mysql_start
+      sleep 10
+
+      expect {
+        expect(Employee.count).to eq(300024)
+      }.to_not raise_error
+
+      mysql_restart
+      sleep 10
+
+      expect {
+        expect(Employee.all.length).to eq(300024)
+      }.to raise_error
+    end
+  end
+
+  it 'not give up' do
+    retry_giveup_count(3) do
+      execution_tries(2) do
+        3.times do
+          p 1
+          mysql_stop
+
+          2.times do
+            expect {
+              expect(Employee.all.length).to eq(300024)
+            }.to raise_error
+          end
+          p 2
+
+          mysql_start
+          sleep 10
+
+          expect {
+            expect(Employee.count).to eq(300024)
+          }.to_not raise_error
+
+          p 3
+          mysql_restart
+          sleep 10
+
+          expect {
+            expect(Employee.all.length).to eq(300024)
+          }.to_not raise_error
+        end
+      end
+    end
+  end
 end

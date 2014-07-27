@@ -23,12 +23,12 @@ class ActiveRecord::Base
        Activerecord::Mysql::Reconnect.retry_databases
     end
 
-    def retry_giveup_limit=(v)
-       Activerecord::Mysql::Reconnect.retry_giveup_limit = v
+    def retry_giveup_count=(v)
+       Activerecord::Mysql::Reconnect.retry_giveup_count = v
     end
 
-    def retry_giveup_limit
-       Activerecord::Mysql::Reconnect.retry_giveup_limit
+    def retry_giveup_count
+       Activerecord::Mysql::Reconnect.retry_giveup_count
     end
 
     def without_retry

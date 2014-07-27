@@ -113,7 +113,6 @@ ene
 ## Running tests on local
 
 ```sh
-mysql.server start
 export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_START='mysql.server start'
 export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_STOP='mysql.server stop'
 export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART='killall -9 mysqld; sleep 3; mysql.server restart; true'
