@@ -53,6 +53,8 @@ module Activerecord::Mysql::Reconnect
   RETRY_MODES = [:r, :rw, :force]
   DEFAULT_RETRY_MODE = :r
 
+  @@retry_failure_count = 0
+
   class << self
     def execution_tries
       ActiveRecord::Base.execution_tries || DEFAULT_EXECUTION_TRIES
@@ -105,6 +107,14 @@ module Activerecord::Mysql::Reconnect
 
     def retry_databases
       @activerecord_mysql_reconnect_retry_databases || []
+    end
+
+    def retry_giveup_limit=(v)
+      @activerecord_mysql_reconnect_retry_giveup_limit = v
+    end
+
+    def retry_giveup_limit
+      @activerecord_mysql_reconnect_retry_giveup_limit
     end
 
     def retryable(opts)
