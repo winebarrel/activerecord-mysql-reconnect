@@ -5,17 +5,20 @@ class Employee < ActiveRecord::Base; end
 
 def mysql_start
   cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_START'] || 'sudo service mysql start'
-  system(cmd)
+  system("#{cmd} > /dev/null 2> /dev/null")
+  puts "--- restart mysql ---"
 end
 
 def mysql_stop
   cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_STOP'] || 'sudo service mysql stop'
-  system(cmd)
+  system("#{cmd} > /dev/null 2> /dev/null")
+  puts "--- start mysql ---"
 end
 
 def mysql_restart
   cmd = ENV['ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART'] || 'sudo killall -9 mysqld; sleep 3; sudo service mysql restart'
-  system(cmd)
+  system("#{cmd} > /dev/null 2> /dev/null")
+  puts "--- stop mysql ---"
 end
 
 class Mysql2::Client
@@ -152,8 +155,8 @@ RSpec.configure do |config|
 
     EOS
 
+    mysql_restart
     employees_sql = File.expand_path('../employees.sql', __FILE__)
-    mysql_start
     system("mysql -u root < #{employees_sql}")
 
     ActiveRecord::Base.establish_connection(
@@ -168,5 +171,7 @@ RSpec.configure do |config|
     ActiveRecord::Base.enable_retry = true
     ActiveRecord::Base.execution_tries = 10
     ActiveRecord::Base.retry_mode = :rw
+
+    Activerecord::Mysql::Reconnect.reset_failure_count!
   end
 end

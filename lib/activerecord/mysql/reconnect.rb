@@ -117,6 +117,10 @@ module Activerecord::Mysql::Reconnect
       @activerecord_mysql_reconnect_retry_giveup_count || 0
     end
 
+    def reset_failure_count!
+      @@retry_failure_count = 0
+    end
+
     def retryable(opts)
       block     = opts.fetch(:proc)
       on_error  = opts[:on_error]
