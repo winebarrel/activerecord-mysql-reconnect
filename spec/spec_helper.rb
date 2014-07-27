@@ -156,6 +156,8 @@ RSpec.configure do |config|
     EOS
 
     mysql_restart
+    sleep 10
+    ActiveRecord::Base.clear_all_connections!
     employees_sql = File.expand_path('../employees.sql', __FILE__)
     system("mysql -u root < #{employees_sql}")
 
