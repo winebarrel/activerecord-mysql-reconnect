@@ -316,6 +316,9 @@ describe 'activerecord-mysql-reconnect' do
   end
 
   it 'lost connection' do
+    mysql_restart
+    sleep 10
+
     sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', SLEEP(10), 'Scott', '2014-01-09 03:22:25', 'Tiger')"
 
     expect {
