@@ -129,20 +129,24 @@ module Activerecord::Mysql::Reconnect
           retval = block.call
           break
         rescue => e
-          if enable_retry and (tries.zero? or n < tries) and should_handle?(e, opts)
-            on_error.call if on_error
-            wait = self.execution_retry_wait * n
+          if enable_retry and should_handle?(e, opts)
+            if (tries.zero? or n < tries)
+              on_error.call if on_error
+              wait = self.execution_retry_wait * n
 
-            opt_msgs = ["cause: #{e} [#{e.class}]"]
+              opt_msgs = ["cause: #{e} [#{e.class}]"]
 
-            if conn
-              conn_info = connection_info(conn)
-              opt_msgs << 'connection: ' + [:host, :database, :username].map {|k| "#{k}=#{conn_info[k]}" }.join(";")
+              if conn
+                conn_info = connection_info(conn)
+                opt_msgs << 'connection: ' + [:host, :database, :username].map {|k| "#{k}=#{conn_info[k]}" }.join(";")
+              end
+
+              logger.warn("MySQL server has gone away. Trying to reconnect in #{wait.to_f} seconds. (#{opt_msgs.join(', ')})")
+              sleep(wait)
+              next
+            else
+              raise e
             end
-
-            logger.warn("MySQL server has gone away. Trying to reconnect in #{wait.to_f} seconds. (#{opt_msgs.join(', ')})")
-            sleep(wait)
-            next
           else
             raise e
           end
