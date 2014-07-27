@@ -114,7 +114,7 @@ module Activerecord::Mysql::Reconnect
     end
 
     def retry_giveup_limit
-      @activerecord_mysql_reconnect_retry_giveup_limit
+      @activerecord_mysql_reconnect_retry_giveup_limit || 0
     end
 
     def retryable(opts)
@@ -123,13 +123,16 @@ module Activerecord::Mysql::Reconnect
       conn      = opts[:connection]
       tries     = self.execution_tries
       retval    = nil
+      retrying  = false
 
       retryable_loop(tries) do |n|
         begin
           retval = block.call
           break
         rescue => e
-          if enable_retry and should_handle?(e, opts)
+          if enable_retry and not give_up? and should_handle?(e, opts)
+            retrying = true
+
             if (tries.zero? or n < tries)
               on_error.call if on_error
               wait = self.execution_retry_wait * n
@@ -145,6 +148,7 @@ module Activerecord::Mysql::Reconnect
               sleep(wait)
               next
             else
+              retry_failed
               raise e
             end
           else
@@ -153,6 +157,7 @@ module Activerecord::Mysql::Reconnect
         end
       end
 
+      retry_succeeded if retrying
       return retval
     end
 
@@ -194,6 +199,22 @@ module Activerecord::Mysql::Reconnect
     end
 
     private
+
+    def give_up?
+      if retry_giveup_limit.zero?
+        return false
+      end
+
+      @@retry_failure_count < retry_giveup_limit
+    end
+
+    def retry_failed
+      @@retry_failure_count += 1
+    end
+
+    def retry_succeeded
+      @@retry_failure_count = 0
+    end
 
     def retryable_loop(n)
       if n.zero?
