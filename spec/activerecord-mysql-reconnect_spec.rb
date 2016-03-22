@@ -118,7 +118,7 @@ describe 'activerecord-mysql-reconnect' do
       mysql_restart
       expect(Employee.count).to be >= 300024
       th.join
-    }.to raise_error
+    }.to raise_error(/unhandled error/)
   end
 
   it 'op update' do
