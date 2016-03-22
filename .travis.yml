@@ -2,7 +2,8 @@ language: ruby
 rvm:
 - 2.0.0
 script:
-- if [ -n "$ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION" ]; then sed -i.bak "s/spec.add_dependency 'activerecord'.*/spec.add_dependency 'activerecord', '~> $ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION'/" activerecord-mysql-reconnect.gemspec; fi
+- [ -n "$ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION" ] && sed -i.bak "s/spec.add_dependency 'activerecord'.*/spec.add_dependency 'activerecord', '~> $ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION'/" activerecord-mysql-reconnect.gemspec
+- [ -n "$ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION" -a "$ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION" "<" "4.2" ] && sed -i.bak "s/spec.add_dependency 'mysql2'.*/spec.add_dependency 'mysql2', '~> 0.3'/" activerecord-mysql-reconnect.gemspec
 - sudo apt-get -y install sysvbanner
 - banner `mysqld --version`
 - banner $ACTIVERECORD_MYSQL_RECONNECT_ENGINE
