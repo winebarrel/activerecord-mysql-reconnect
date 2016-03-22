@@ -1,3 +1,4 @@
+dist: trusty
 sudo: required
 language: ruby
 rvm:
@@ -7,7 +8,8 @@ before_install:
   - sudo apt-get -y install sysvbanner
   - if [ -n "$ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION" ]; then sed -i.bak "s/spec.add_dependency 'activerecord'.*/spec.add_dependency 'activerecord', '~> $ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION'/" activerecord-mysql-reconnect.gemspec; fi
   - if [ -n "$ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION" -a "$ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION" "<" "4.2" ]; then sed -i.bak "s/spec.add_dependency 'mysql2'.*/spec.add_dependency 'mysql2', '~> 0.3'/" activerecord-mysql-reconnect.gemspec; fi
-  - bundle install -j4
+  - cat activerecord-mysql-reconnect.gemspec
+  - bundle install
 before_scriot:
   - banner `mysqld --version`
   - banner $ACTIVERECORD_MYSQL_RECONNECT_ENGINE
