@@ -66,16 +66,6 @@ ActiveRecord::Base.without_retry do
 end
 ```
 
-### retryable_transaction
-
-```ruby
-ActiveRecord::Base.retryable_transaction do
-  Employee.create(emp_no: 1, birth_date: Time.now, first_name: 'Scott', last_name: 'Tiger', hire_date: Time.now)
-  Employee.create(emp_no: 2, birth_date: Time.now, first_name: 'Scott', last_name: 'Tiger', hire_date: Time.now)
-  Employee.create(emp_no: 3, birth_date: Time.now, first_name: 'Scott', last_name: 'Tiger', hire_date: Time.now)
-end
-```
-
 ## Use on rails
 
 ### Gemfile

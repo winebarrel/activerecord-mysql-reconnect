@@ -118,7 +118,7 @@ describe 'activerecord-mysql-reconnect' do
       mysql_restart
       expect(Employee.count).to be >= 300024
       th.join
-    }.to raise_error
+    }.to raise_error(/unhandled error/)
   end
 
   it 'op update' do
@@ -188,51 +188,7 @@ describe 'activerecord-mysql-reconnect' do
     end
   end
 
-  it 'retryable_transaction' do
-    unless /MyISAM/i =~ ENV['ACTIVERECORD_MYSQL_RECONNECT_ENGINE']
-      expect {
-        expect(Employee.count).to eq(300024)
-
-        mysql2_error('MySQL server has gone away') do
-          ActiveRecord::Base.retryable_transaction do
-            emp = Employee.create(
-                    :emp_no     => 1,
-                    :birth_date => Time.now,
-                    :first_name => 'Scott',
-                    :last_name  => 'Tiger',
-                    :hire_date  => Time.now
-                  )
-            expect(emp.id).to eq(300025)
-            expect(emp.emp_no).to eq(1)
-            mysql_restart
-            emp = Employee.create(
-                    :emp_no     => 2,
-                    :birth_date => Time.now,
-                    :first_name => 'Scott',
-                    :last_name  => 'Tiger',
-                    :hire_date  => Time.now
-                  )
-            expect(emp.id).to eq(300026)
-            expect(emp.emp_no).to eq(2)
-            mysql_restart
-            emp = Employee.create(
-                    :emp_no     => 3,
-                    :birth_date => Time.now,
-                    :first_name => 'Scott',
-                    :last_name  => 'Tiger',
-                    :hire_date  => Time.now
-                  )
-            expect(emp.id).to eq(300027)
-            expect(emp.emp_no).to eq(3)
-          end
-        end
-
-        expect(Employee.count).to eq(300027)
-      }.to_not raise_error
-    end
-  end
-
-  it 'retry new connection' do
+ it 'retry new connection' do
     expect {
       ActiveRecord::Base.clear_all_connections!
       mysql_restart

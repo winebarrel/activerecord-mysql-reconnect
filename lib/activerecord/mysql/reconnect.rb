@@ -11,8 +11,7 @@ require 'active_record/connection_adapters/abstract/connection_pool'
 
 require 'activerecord/mysql/reconnect/version'
 require 'activerecord/mysql/reconnect/base_ext'
-# XXX:
-#require 'activerecord/mysql/reconnect/abstract_adapter_ext'
+
 require 'activerecord/mysql/reconnect/abstract_mysql_adapter_ext'
 require 'activerecord/mysql/reconnect/mysql2_adapter_ext'
 require 'activerecord/mysql/reconnect/connection_pool_ext'
@@ -22,7 +21,6 @@ module Activerecord::Mysql::Reconnect
   DEFAULT_EXECUTION_RETRY_WAIT = 0.5
 
   WITHOUT_RETRY_KEY = 'activerecord-mysql-reconnect-without-retry'
-  RETRYABLE_TRANSACTION_KEY = 'activerecord-mysql-reconnect-transaction-retry'
 
   HANDLE_ERROR = [
     ActiveRecord::StatementInvalid,
@@ -161,22 +159,6 @@ module Activerecord::Mysql::Reconnect
 
     def without_retry?
       !!Thread.current[WITHOUT_RETRY_KEY]
-    end
-
-    def retryable_transaction
-      begin
-        Thread.current[RETRYABLE_TRANSACTION_KEY] = []
-
-        ActiveRecord::Base.transaction do
-          yield
-        end
-      ensure
-        Thread.current[RETRYABLE_TRANSACTION_KEY] = nil
-      end
-    end
-
-    def retryable_transaction_buffer
-      Thread.current[RETRYABLE_TRANSACTION_KEY]
     end
 
     private
