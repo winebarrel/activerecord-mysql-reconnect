@@ -8,10 +8,9 @@ rvm:
   - 2.3.0
 before_install:
   - gem install bundler
-  - sudo apt-get -y install sysvbanner
 scriot:
-  - banner `mysqld --version`
-  - banner `bundle exec ruby -e 'require "active_record"; puts ActiveRecord::VERSION::STRING'`
+  - mysqld --version
+  - bundle exec ruby -e 'require "active_record"; puts ActiveRecord::VERSION::STRING'
   - bundle exec rake
 gemfile:
   - gemfiles/activerecord_4.2.gemfile
