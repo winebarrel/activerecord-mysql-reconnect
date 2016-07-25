@@ -1,12 +1,11 @@
-class ActiveRecord::ConnectionAdapters::ConnectionPool
-  def new_connection_with_retry
+module NewConnectionWithRetry
+  def new_connection
     Activerecord::Mysql::Reconnect.retryable(
-      :proc => proc {
-        new_connection_without_retry
-      },
+      :proc => proc { super },
       :connection => spec.config,
     )
   end
-
-  alias_method_chain :new_connection, :retry
+end
+class ActiveRecord::ConnectionAdapters::ConnectionPool
+  prepend NewConnectionWithRetry
 end

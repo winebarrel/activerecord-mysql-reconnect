@@ -1,17 +1,19 @@
-class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
-  def execute_with_reconnect(sql, name = nil)
+module ExecuteWithReconnect
+  def execute(sql, name = nil)
     retryable(sql, name) do |sql_names|
       retval = nil
 
       sql_names.each do |s, n|
-        retval = execute_without_reconnect(s, n)
+        retval = super(s, n)
       end
 
       retval
     end
   end
+end
 
-  alias_method_chain :execute, :reconnect
+class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
+  prepend ExecuteWithReconnect
 
   private
 

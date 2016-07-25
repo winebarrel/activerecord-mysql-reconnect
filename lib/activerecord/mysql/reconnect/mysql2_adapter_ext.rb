@@ -1,12 +1,13 @@
-class ActiveRecord::ConnectionAdapters::Mysql2Adapter
-  def reconnect_with_retry!
+module ReconnectWithRetry
+  def reconnect!
     Activerecord::Mysql::Reconnect.retryable(
-      :proc => proc {
-        reconnect_without_retry!
-      },
+      :proc => proc { super },
       :connection => @connection
     )
   end
+end
 
-  alias_method_chain :reconnect!, :retry
+class ActiveRecord::ConnectionAdapters::Mysql2Adapter
+  alias_method :reconnect_without_retry!, :reconnect!
+  prepend ReconnectWithRetry
 end
