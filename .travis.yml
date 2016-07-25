@@ -8,18 +8,15 @@ rvm:
   - 2.3.0
 before_install:
   - gem install bundler
-  - sudo apt-get -y install sysvbanner
-  - if [ -n "$ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION" ]; then sed -i.bak "s/spec.add_dependency 'activerecord'.*/spec.add_dependency 'activerecord', '~> $ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION'/" activerecord-mysql-reconnect.gemspec; fi
-  - bundle install
-before_scriot:
-  - banner `mysqld --version`
-  - banner $ACTIVERECORD_MYSQL_RECONNECT_ENGINE
-  - banner `bundle exec ruby -e 'require "active_record"; puts ActiveRecord::VERSION::STRING'`
 scriot:
+  - mysqld --version
+  - bundle exec ruby -e 'require "active_record"; puts ActiveRecord::VERSION::STRING'
   - bundle exec rake
+gemfile:
+  - gemfiles/activerecord_4.2.gemfile
 env:
-  - ACTIVERECORD_MYSQL_RECONNECT_ENGINE=InnoDB ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION=4.2.6
-  - ACTIVERECORD_MYSQL_RECONNECT_ENGINE=MyISAM ACTIVERECORD_MYSQL_RECONNECT_AR_VERSION=4.2.6
+  - ACTIVERECORD_MYSQL_RECONNECT_ENGINE=InnoDB
+  - ACTIVERECORD_MYSQL_RECONNECT_ENGINE=MyISAM
 addons:
   apt:
     packages:
