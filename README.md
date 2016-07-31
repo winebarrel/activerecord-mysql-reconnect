@@ -111,4 +111,5 @@ It requires the following:
 bundle install
 bundle exec appraisal install
 bundle exec appraisal activerecord-4.2 rake
+bundle exec appraisal activerecord-5.0 rake
 ```
