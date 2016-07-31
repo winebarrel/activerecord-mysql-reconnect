@@ -100,13 +100,14 @@ ene
 * `:rw`     Retry in all SQL, but does not retry if `Lost connection` has happened in write SQL
 * `:force`  Retry in all SQL
 
-## Running tests on local
+## Running tests
+
+It requires the following:
+
+* Docker
+* Docker Compose
 
 ```sh
-mysql.server start
-export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_START='mysql.server start'
-export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_STOP='mysql.server stop'
-export ACTIVERECORD_MYSQL_RECONNECT_MYSQL_RESTART='killall -9 mysqld; sleep 3; mysql.server restart; true'
 bundle install
 bundle exec appraisal install
 bundle exec appraisal activerecord-4.2 rake

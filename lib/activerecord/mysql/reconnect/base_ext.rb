@@ -28,11 +28,5 @@ class ActiveRecord::Base
         yield
       end
     end
-
-    def retryable_transaction
-      Activerecord::Mysql::Reconnect.retryable_transaction do
-        yield
-      end
-    end
   end
 end

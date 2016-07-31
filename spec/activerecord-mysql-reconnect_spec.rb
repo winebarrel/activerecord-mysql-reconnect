@@ -1,57 +1,96 @@
 describe 'activerecord-mysql-reconnect' do
-  it 'select all' do
-    expect {
-      expect(Employee.all.length).to eq(300024)
-      mysql_restart
-      expect(Employee.all.length).to eq(300024)
-    }.to_not raise_error
+  before(:each) do
+    ActiveRecord::Base.establish_connection(
+      :adapter  => 'mysql2',
+      :host     => '127.0.0.1',
+      :username => 'root',
+      :database => 'employees'
+    )
+
+    ActiveRecord::Base.logger = Logger.new($stdout)
+    ActiveRecord::Base.logger.formatter = proc {|_, _, _, message| "#{message}\n" }
+
+    if ENV['DEBUG'] == '1'
+      ActiveRecord::Base.logger.level = Logger::DEBUG
+    else
+      ActiveRecord::Base.logger.level = Logger::ERROR
+    end
+
+    ActiveRecord::Base.enable_retry = true
+    ActiveRecord::Base.execution_tries = 10
+    ActiveRecord::Base.retry_mode = :rw
+    ActiveRecord::Base.retry_databases = []
   end
 
-  it 'count' do
-    expect {
-      expect(Employee.count).to eq(300024)
-      mysql_restart
-      expect(Employee.count).to eq(300024)
-    }.to_not raise_error
+  let(:insert_with_sleep) do
+    <<-SQL
+      INSERT INTO `employees` (
+        `birth_date`,
+        `emp_no`,
+        `first_name`,
+        `hire_date`,
+        `last_name`
+      ) VALUES (
+        '2014-01-09 03:22:25',
+        SLEEP(10),
+        'Scott',
+        '2014-01-09 03:22:25',
+        'Tiger'
+      )
+    SQL
   end
 
-  it 'on select' do
-    expect {
-      th = thread_run {|do_stop|
-        expect(Employee.where(:id => 1).pluck('sleep(10) * 0')).to eq([0])
+  context 'when select all on same thread' do
+    specify do
+      expect(Employee.all.length).to eq 1000
+      MysqlServer.restart
+      expect(Employee.all.length).to eq 1000
+    end
+  end
+
+  context 'when count on same thead' do
+    specify do
+      expect(Employee.count).to eq 1000
+      MysqlServer.restart
+      expect(Employee.count).to eq 1000
+    end
+  end
+
+  context 'wehn select on other thread' do
+    specify do
+      th = thread_start {
+        expect(Employee.where(:id => 1).pluck('sleep(10) * 0 + 3')).to eq [3]
       }
 
-      mysql_restart
-      expect(Employee.count).to be >= 300024
+      MysqlServer.restart
+      expect(Employee.count).to eq 1000
       th.join
-    }.to_not raise_error
+    end
   end
 
-  it 'on insert' do
-    expect {
-      th = thread_run {|do_stop|
-        emp = nil
+  context 'when insert on other thread' do
+    before do
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('MySQL server has gone away')
+    end
 
-        mysql2_error('MySQL server has gone away') do
-          emp = Employee.create(
-                  :emp_no     => 1,
-                  :birth_date => Time.now,
-                  :first_name => "' + sleep(10) + '",
-                  :last_name  => 'Tiger',
-                  :hire_date  => Time.now
-                )
-        end
+    specify do
+      th = thread_start {
+        emp = Employee.create(
+          :emp_no     => 9999,
+          :birth_date => Time.now,
+          # wait 10 sec
+          :first_name => "' + sleep(10) + '",
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
 
-        do_stop.call
-
-        expect(emp.id).to eq(300025)
-        expect(emp.emp_no).to eq(1)
+        expect(emp.id).to eq 1001
+        expect(emp.emp_no).to eq 9999
       }
 
-      mysql_restart
-      expect(Employee.count).to be >= 300024
+      MysqlServer.restart
       th.join
-    }.to_not raise_error
+    end
   end
 
   [
@@ -66,263 +105,299 @@ describe 'activerecord-mysql-reconnect' do
     'Unknown MySQL server host', # For DNS blips
     "Lost connection to MySQL server at 'reading initial communication packet'",
   ].each do |errmsg|
-    it "on error: #{errmsg}" do
-      expect {
-        th = thread_run {|do_stop|
-          emp = nil
+    context "when `#{errmsg}` is happened" do
+      before do
+        allow_any_instance_of(Mysql2::Error).to receive(:message).and_return(errmsg)
+      end
 
-          mysql2_error("x#{errmsg}x") do
-            emp = Employee.create(
-                    :emp_no     => 1,
-                    :birth_date => Time.now,
-                    :first_name => "' + sleep(10) + '",
-                    :last_name  => 'Tiger',
-                    :hire_date  => Time.now
-                  )
-          end
+      specify do
+        th = thread_start {
+          emp = Employee.create(
+            :emp_no     => 9999,
+            :birth_date => Time.now,
+            # wait 10 sec
+            :first_name => "' + sleep(10) + '",
+            :last_name  => 'Tiger',
+            :hire_date  => Time.now
+          )
 
-          do_stop.call
-
-          expect(emp.id).to eq(300025)
-          expect(emp.emp_no).to eq(1)
+          expect(emp.id).to eq 1001
+          expect(emp.emp_no).to eq 9999
         }
 
-        mysql_restart
-        expect(Employee.count).to be >= 300024
+        MysqlServer.restart
         th.join
-      }.to_not raise_error
+      end
     end
   end
 
-  it "on unhandled error" do
-    expect {
-      th = thread_run {|do_stop|
-        emp = nil
+  context 'when unexpected error is happened' do
+    before do
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return("unexpected error")
+    end
 
-        mysql2_error("unhandled error") do
+    specify do
+      th = thread_start {
+        expect {
           emp = Employee.create(
-                  :emp_no     => 1,
-                  :birth_date => Time.now,
-                  :first_name => "' + sleep(10) + '",
-                  :last_name  => 'Tiger',
-                  :hire_date  => Time.now
-                )
-        end
-
-        do_stop.call
-
-        expect(emp.id).to eq(300025)
-        expect(emp.emp_no).to eq(1)
+            :emp_no     => 9999,
+            :birth_date => Time.now,
+            # wait 10 sec
+            :first_name => "' + sleep(10) + '",
+            :last_name  => 'Tiger',
+            :hire_date  => Time.now
+          )
+        }.to raise_error(/unexpected error/)
       }
 
-      mysql_restart
-      expect(Employee.count).to be >= 300024
+      MysqlServer.restart
       th.join
-    }.to raise_error(/unhandled error/)
+    end
   end
 
-  it 'op update' do
-    expect {
-      th = thread_run {|do_stop|
+  context 'when update on other thread' do
+    before do
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('MySQL server has gone away')
+    end
+
+    specify do
+      th = thread_start {
         emp = Employee.where(:id => 1).first
+        # wait 10 sec
         emp.first_name = "' + sleep(10) + '"
         emp.last_name = 'ZapZapZap'
-
-        mysql2_error('MySQL server has gone away') do
-          emp.save!
-        end
-
-        do_stop.call
+        emp.save!
 
         emp = Employee.where(:id => 1).first
-        expect(emp.last_name).to eq('ZapZapZap')
+        expect(emp.last_name).to eq 'ZapZapZap'
       }
 
-      mysql_restart
-      expect(Employee.count).to eq(300024)
+      MysqlServer.restart
       th.join
-    }.to_not raise_error
-  end
-
-  it 'without_retry' do
-    expect {
-      ActiveRecord::Base.without_retry do
-        Employee.count
-        mysql_restart
-        Employee.count
-      end
-    }.to raise_error(ActiveRecord::StatementInvalid)
-  end
-
-  it 'transaction' do
-    unless /MyISAM/i =~ ENV['ACTIVERECORD_MYSQL_RECONNECT_ENGINE']
-      expect {
-        expect(Employee.count).to eq(300024)
-
-        mysql2_error('MySQL server has gone away') do
-          ActiveRecord::Base.transaction do
-            emp = Employee.create(
-                    :emp_no     => 1,
-                    :birth_date => Time.now,
-                    :first_name => 'Scott',
-                    :last_name  => 'Tiger',
-                    :hire_date  => Time.now
-                  )
-            expect(emp.id).to eq(300025)
-            expect(emp.emp_no).to eq(1)
-            mysql_restart
-            emp = Employee.create(
-                    :emp_no     => 2,
-                    :birth_date => Time.now,
-                    :first_name => 'Scott',
-                    :last_name  => 'Tiger',
-                    :hire_date  => Time.now
-                  )
-            expect(emp.id).to eq(300025)
-            expect(emp.emp_no).to eq(2)
-          end
-        end
-
-        expect(Employee.count).to eq(300025)
-      }.to_not raise_error
     end
   end
 
- it 'retry new connection' do
-    expect {
-      ActiveRecord::Base.clear_all_connections!
-      mysql_restart
-      expect(Employee.count).to eq(300024)
-    }.to_not raise_error
+  context 'when use #without_retry' do
+    specify do
+      expect {
+        ActiveRecord::Base.without_retry do
+          Employee.count
+          MysqlServer.restart
+          Employee.count
+        end
+      }.to raise_error(ActiveRecord::StatementInvalid)
+    end
   end
 
-  it 'retry verify' do
-    expect {
-      th = thread_run {|do_stop|
-        mysql_stop
+  context 'with transaction' do
+    before do
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('MySQL server has gone away')
+    end
+
+    specify do
+      skip if myisam?
+
+      expect(Employee.count).to eq 1000
+
+      ActiveRecord::Base.transaction do
+        emp = Employee.create(
+          :emp_no     => 9999,
+          :birth_date => Time.now,
+          :first_name => 'Scott',
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
+
+        expect(emp.id).to eq 1001
+        expect(emp.emp_no).to eq 9999
+
+        MysqlServer.restart
+
+        emp = Employee.create(
+          :emp_no     => 9998,
+          :birth_date => Time.now,
+          :first_name => 'Scott',
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
+
+        # NOTE: Ignore the transaction on :rw mode
+        expect(emp.id).to eq 1001
+        expect(emp.emp_no).to eq 9998
+      end
+
+      expect(Employee.count).to eq 1001
+    end
+  end
+
+  context 'when new connection' do
+    specify do
+      ActiveRecord::Base.clear_all_connections!
+      MysqlServer.restart
+      expect(Employee.count).to eq 1000
+    end
+  end
+
+  context 'when connection verify' do
+    specify do
+      th = thread_start {
+        MysqlServer.stop
         sleep 10
-        mysql_start
+        MysqlServer.start
       }
 
+      sleep 5
       ActiveRecord::Base.connection.verify!
       th.join
-    }.to_not raise_error
+    end
   end
 
-  it 'retry reconnect' do
-    expect {
-      th = thread_run {|do_stop|
-        mysql_stop
+  context 'when connection reconnect' do
+    specify do
+      th = thread_start {
+        MysqlServer.stop
         sleep 10
-        mysql_start
+        MysqlServer.start
       }
 
+      sleep 5
       ActiveRecord::Base.connection.reconnect!
       th.join
-    }.to_not raise_error
+    end
   end
 
-  it 'disable reconnect' do
-    disable_retry do
+  context 'when disable reconnect' do
+    specify do
+      ActiveRecord::Base.enable_retry = false
+
       expect {
-        expect(Employee.all.length).to eq(300024)
-        mysql_restart
-        expect(Employee.all.length).to eq(300024)
+        expect(Employee.all.length).to eq 1000
+        MysqlServer.restart
+        expect(Employee.all.length).to eq 1000
       }.to raise_error(ActiveRecord::StatementInvalid)
-    end
 
-    expect {
-      expect(Employee.all.length).to eq(300024)
-      mysql_restart
-      expect(Employee.all.length).to eq(300024)
-    }.to_not raise_error
-  end
+      ActiveRecord::Base.enable_retry = true
 
-  it 'read only (read)' do
-    enable_read_only do
-      expect {
-        expect(Employee.all.length).to eq(300024)
-        mysql_restart
-        expect(Employee.all.length).to eq(300024)
-      }.to_not raise_error
+      expect(Employee.all.length).to eq 1000
+      MysqlServer.restart
+      expect(Employee.all.length).to eq 1000
     end
   end
 
-  it 'read only (write)' do
-    enable_read_only do
-      expect {
-        lock_table
+  context 'when select on :r mode' do
+    before do
+      ActiveRecord::Base.retry_mode = :r
+    end
 
-        th = thread_run {|do_stop|
-          mysql2_error('MySQL server has gone away') do
-            emp = Employee.create(
-                    :emp_no     => 1,
-                    :birth_date => Time.now,
-                    :first_name => 'Scott',
-                    :last_name  => 'Tiger',
-                    :hire_date  => Time.now
-                  )
-          end
-        }
-
-        mysql_restart
-        th.join
-      }.to raise_error(ActiveRecord::StatementInvalid)
+    specify do
+      expect(Employee.all.length).to eq 1000
+      MysqlServer.restart
+      expect(Employee.all.length).to eq 1000
     end
   end
 
-  it 'lost connection' do
-    sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', SLEEP(10), 'Scott', '2014-01-09 03:22:25', 'Tiger')"
+  context 'when insert on :r mode' do
+    before do
+      ActiveRecord::Base.retry_mode = :r
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('MySQL server has gone away')
+    end
 
-    expect {
-      ActiveRecord::Base.connection.execute(sql)
-    }.to_not raise_error
+    specify do
+      expect(Employee.all.length).to eq 1000
 
-    lock_table
+      MysqlServer.restart
 
-    mysql2_error('Lost connection to MySQL server during query') do
       expect {
-        th = thread_run {|do_stop|
-          ActiveRecord::Base.connection.execute(sql)
-        }
-
-        sleep 3
-        mysql_restart
-        th.join
+        Employee.create(
+          :emp_no     => 9999,
+          :birth_date => Time.now,
+          # wait 10 sec
+          :first_name => "' + sleep(10) + '",
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
       }.to raise_error(ActiveRecord::StatementInvalid)
     end
   end
 
-  it 'force retry' do
-    sql = "INSERT INTO `employees` (`birth_date`, `emp_no`, `first_name`, `hire_date`, `last_name`) VALUES ('2014-01-09 03:22:25', 1, 'Scott', '2014-01-09 03:22:25', 'Tiger')"
+  context 'when `lost connection` is happened' do
+    before do
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('Lost connection to MySQL server during query')
+    end
 
-    expect {
-      ActiveRecord::Base.connection.execute(sql)
-    }.to_not raise_error
+    specify do
+      expect(Employee.all.length).to eq 1000
 
-    lock_table
+      MysqlServer.restart
 
-    mysql2_error('Lost connection to MySQL server during query') do
       expect {
-        th = thread_run {|do_stop|
-          force_retry do
-            ActiveRecord::Base.connection.execute(sql)
-          end
-        }
-
-        mysql_restart
-        th.join
-      }.to_not raise_error
+        Employee.create(
+          :emp_no     => 9999,
+          :birth_date => Time.now,
+          # wait 10 sec
+          :first_name => "' + sleep(10) + '",
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
+      }.to raise_error(ActiveRecord::StatementInvalid)
     end
   end
 
-  it 'read-only=1' do
-    mysql2_error('The MySQL server is running with the --read-only option so it cannot execute this statement:') do
-      expect {
-        expect(Employee.all.length).to eq(300024)
-        mysql_restart
-        expect(Employee.all.length).to eq(300024)
-      }.to_not raise_error
+  context 'when `lost connection` is happened on :force mode' do
+    before do
+      ActiveRecord::Base.retry_mode = :force
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('Lost connection to MySQL server during query')
+    end
+
+    specify do
+      expect(Employee.all.length).to eq 1000
+
+      MysqlServer.restart
+
+      emp = Employee.create(
+        :emp_no     => 9999,
+        :birth_date => Time.now,
+        # wait 10 sec
+        :first_name => "' + sleep(10) + '",
+        :last_name  => 'Tiger',
+        :hire_date  => Time.now
+      )
+
+      expect(emp.id).to eq 1001
+      expect(emp.emp_no).to eq 9999
+    end
+  end
+
+  context 'when `lost connection` is happened on :force mode (2)' do
+    before do
+      ActiveRecord::Base.retry_mode = :force
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('Lost connection to MySQL server during query')
+
+      Thread.start do
+        MysqlServer.lock_tables
+      end
+    end
+
+    specify do
+      th = thread_start {
+        ActiveRecord::Base.connection.execute(insert_with_sleep)
+      }
+
+      sleep 3
+      MysqlServer.restart
+      th.join
+    end
+  end
+
+  context 'when read-only=1' do
+    before do
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('The MySQL server is running with the --read-only option so it cannot execute this statement:')
+    end
+
+    specify do
+      expect(Employee.all.length).to eq 1000
+      MysqlServer.restart
+      expect(Employee.all.length).to eq 1000
     end
   end
 
@@ -331,20 +406,24 @@ describe 'activerecord-mysql-reconnect' do
     '127.0.0.2:employees',
     '127.0.0.\_:employees',
   ].each do |db|
-    it "retry specific database: #{db}" do
-      retry_databases(db) do
-        expect {
-          expect(Employee.all.length).to eq(300024)
-          mysql_restart
-          expect(Employee.all.length).to eq(300024)
-        }.to raise_error(ActiveRecord::StatementInvalid)
+    context "when retry specific database: #{db}" do
+      before do
+        ActiveRecord::Base.retry_databases = db
       end
 
-      expect {
-        expect(Employee.all.length).to eq(300024)
-        mysql_restart
-        expect(Employee.all.length).to eq(300024)
-      }.to_not raise_error
+      specify do
+        expect {
+          expect(Employee.all.length).to eq 1000
+          MysqlServer.restart
+          expect(Employee.all.length).to eq 1000
+        }.to raise_error(ActiveRecord::StatementInvalid)
+
+        ActiveRecord::Base.retry_databases = []
+
+        expect(Employee.all.length).to eq 1000
+        MysqlServer.restart
+        expect(Employee.all.length).to eq 1000
+      end
     end
   end
 
@@ -353,13 +432,15 @@ describe 'activerecord-mysql-reconnect' do
     '127.0.0.1:employees',
     '127.0.0._:e%',
   ].each do |db|
-    it "retry specific database: #{db}" do
-      retry_databases(db) do
-        expect {
-          expect(Employee.all.length).to eq(300024)
-          mysql_restart
-          expect(Employee.all.length).to eq(300024)
-        }.to_not raise_error
+    context "when retry specific database: #{db}" do
+      before do
+        ActiveRecord::Base.retry_databases = db
+      end
+
+      specify do
+        expect(Employee.all.length).to eq 1000
+        MysqlServer.restart
+        expect(Employee.all.length).to eq 1000
       end
     end
   end
