@@ -16,7 +16,7 @@ class MysqlServer
     end
 
     def stop
-      system("docker-compose down #{REDIRECT_TO_DEV_NULL}")
+      system("docker-compose stop #{REDIRECT_TO_DEV_NULL}")
     end
 
     def restart

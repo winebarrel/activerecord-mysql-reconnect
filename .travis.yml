@@ -12,8 +12,6 @@ before_install:
   - for i in {1..60}; do mysql_ping && break; sleep 1; done
   - gem install bundler
 script:
-  - mysqld --version
-  - bundle exec ruby -e 'require "active_record"; puts ActiveRecord::VERSION::STRING'
   - bundle exec rake
 gemfile:
   - gemfiles/activerecord_4.2.gemfile
