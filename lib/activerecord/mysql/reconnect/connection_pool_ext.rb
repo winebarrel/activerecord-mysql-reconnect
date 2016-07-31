@@ -1,4 +1,4 @@
-module NewConnectionWithRetry
+module Activerecord::Mysql::Reconnect::NewConnectionWithRetry
   def new_connection
     Activerecord::Mysql::Reconnect.retryable(
       :proc => proc { super },
@@ -7,5 +7,5 @@ module NewConnectionWithRetry
   end
 end
 class ActiveRecord::ConnectionAdapters::ConnectionPool
-  prepend NewConnectionWithRetry
+  prepend Activerecord::Mysql::Reconnect::NewConnectionWithRetry
 end

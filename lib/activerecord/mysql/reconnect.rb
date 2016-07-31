@@ -8,6 +8,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/abstract_mysql_adapter'
 require 'active_record/connection_adapters/mysql2_adapter'
 require 'active_record/connection_adapters/abstract/connection_pool'
+require 'active_record/connection_adapters/abstract/transaction'
 
 require 'activerecord/mysql/reconnect/version'
 require 'activerecord/mysql/reconnect/base_ext'
@@ -15,6 +16,7 @@ require 'activerecord/mysql/reconnect/base_ext'
 require 'activerecord/mysql/reconnect/abstract_mysql_adapter_ext'
 require 'activerecord/mysql/reconnect/mysql2_adapter_ext'
 require 'activerecord/mysql/reconnect/connection_pool_ext'
+require 'activerecord/mysql/reconnect/null_transaction_ext'
 
 module Activerecord::Mysql::Reconnect
   DEFAULT_EXECUTION_TRIES = 3

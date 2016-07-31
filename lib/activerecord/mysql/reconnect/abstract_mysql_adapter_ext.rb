@@ -1,4 +1,4 @@
-module ExecuteWithReconnect
+module Activerecord::Mysql::Reconnect::ExecuteWithReconnect
   def execute(sql, name = nil)
     retryable(sql, name) do |sql_names|
       retval = nil
@@ -13,13 +13,18 @@ module ExecuteWithReconnect
 end
 
 class ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter
-  prepend ExecuteWithReconnect
+  prepend Activerecord::Mysql::Reconnect::ExecuteWithReconnect
 
   private
 
   def retryable(sql, name, &block)
     block_with_reconnect = nil
     sql_names = [[sql, name]]
+    transaction = current_transaction
+
+    if sql =~ /\ABEGIN\z/i and transaction.is_a?(ActiveRecord::ConnectionAdapters::NullTransaction)
+      def transaction.state; nil; end
+    end
 
     Activerecord::Mysql::Reconnect.retryable(
       :proc => proc {
