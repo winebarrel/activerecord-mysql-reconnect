@@ -23,8 +23,12 @@ env:
   matrix:
     - ACTIVERECORD_MYSQL_RECONNECT_ENGINE=InnoDB
     - ACTIVERECORD_MYSQL_RECONNECT_ENGINE=MyISAM
+matrix:
+  exclude:
+    - rvm: 2.1.9
+      gemfile: gemfiles/activerecord_5.0.gemfile
 addons:
   apt:
     packages:
-    - mysql-client-core-5.6
-    - mysql-client-5.6
+      - mysql-client-core-5.6
+      - mysql-client-5.6
