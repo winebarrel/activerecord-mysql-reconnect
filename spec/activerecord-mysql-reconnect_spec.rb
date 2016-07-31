@@ -89,7 +89,6 @@ describe 'activerecord-mysql-reconnect' do
       }
 
       MysqlServer.restart
-      expect(Employee.count).to eq 1000
       th.join
     end
   end
@@ -127,7 +126,6 @@ describe 'activerecord-mysql-reconnect' do
         }
 
         MysqlServer.restart
-        expect(Employee.count).to eq 1000
         th.join
       end
     end
@@ -153,7 +151,6 @@ describe 'activerecord-mysql-reconnect' do
       }
 
       MysqlServer.restart
-      expect(Employee.count).to eq 1000
       th.join
     end
   end
@@ -176,7 +173,6 @@ describe 'activerecord-mysql-reconnect' do
       }
 
       MysqlServer.restart
-      expect(Employee.count).to eq 1000
       th.join
     end
   end
