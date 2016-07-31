@@ -374,7 +374,7 @@ describe 'activerecord-mysql-reconnect' do
       allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('Lost connection to MySQL server during query')
 
       Thread.start do
-        ActiveRecord::Base.connection.execute("LOCK TABLES employees WRITE")
+        MysqlServer.lock_tables
       end
     end
 

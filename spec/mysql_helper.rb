@@ -85,5 +85,10 @@ class MysqlServer
       data_file = File.expand_path('../data.sql', __FILE__)
       system("mysql #{CLI_ARGS} employees < #{data_file} #{REDIRECT_TO_DEV_NULL}")
     end
+
+    def lock_tables
+      data_file = File.expand_path('../data.sql', __FILE__)
+      system("mysql #{CLI_ARGS} employees -e 'LOCK TABLES employees WRITE; SELECT SLEEP(60)' #{REDIRECT_TO_DEV_NULL}")
+    end
   end # of class methods
 end
