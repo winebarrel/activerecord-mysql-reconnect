@@ -1,3 +1,8 @@
+activerecord-mysql-reconnect 0.4.1 (Aug 8, 2016)
+
+	* Support AR 5.0
+	* Fix test (use docker-compose)
+
 activerecord-mysql-reconnect 0.4.0 (Mar 22, 2016)
 
 	* Remove `retryable_transaction`
