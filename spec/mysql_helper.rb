@@ -46,8 +46,9 @@ class MysqlServer
       stop
 
       if ENV['SKIP_CLEAN_DATA'] != '1'
+        sudo = ENV['CLEAN_DATA_AS_ROOT'] == '1' ? 'sudo' : ''
         system("docker-compose rm -f mysql_for_ar_mysql_reconn #{REDIRECT_TO_DEV_NULL}")
-        system('rm -rf /tmp/mysql_for_ar_mysql_reconn')
+        system("#{sudo} rm -rf /tmp/mysql_for_ar_mysql_reconn")
       end
     end
 

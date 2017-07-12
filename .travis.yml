@@ -20,6 +20,8 @@ gemfile:
   - gemfiles/activerecord_4.2.gemfile
   - gemfiles/activerecord_5.0.gemfile
 env:
+  global:
+    - CLEAN_DATA_AS_ROOT=1
   matrix:
     - ACTIVERECORD_MYSQL_RECONNECT_ENGINE=InnoDB
     - ACTIVERECORD_MYSQL_RECONNECT_ENGINE=MyISAM
