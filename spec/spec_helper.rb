@@ -35,12 +35,11 @@ include SpecHelper
 
 RSpec.configure do |config|
   config.before(:all) do
-    ENV['MYSQL_PWD'] = 'password'
-    MysqlServer.setup
+    MysqlServer.stop
   end
 
   config.after(:all) do
-    MysqlServer.clean
+    MysqlServer.stop
   end
 
   config.before(:each) do |context|

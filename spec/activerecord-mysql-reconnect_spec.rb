@@ -4,7 +4,8 @@ describe 'activerecord-mysql-reconnect' do
       :adapter  => 'mysql2',
       :host     => '127.0.0.1',
       :username => 'root',
-      :database => 'employees'
+      :database => 'employees',
+      :port     => 14407,
     )
 
     ActiveRecord::Base.logger = Logger.new($stdout)

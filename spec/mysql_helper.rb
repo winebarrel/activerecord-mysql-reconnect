@@ -1,15 +1,10 @@
 require 'mysql2'
 
 class MysqlServer
-  CLI_ARGS = '-u root -P 3306 -h 127.0.0.1'
+  CLI_ARGS = '-u root -P 14407 -h 127.0.0.1'
   REDIRECT_TO_DEV_NULL = ENV['DEBUG'] == '1' ? '' : '> /dev/null 2> /dev/null'
 
   class << self
-    def setup
-      clean
-      system('mkdir -p /tmp/mysql_for_ar_mysql_reconn')
-    end
-
     def start
       system("docker-compose up -d #{REDIRECT_TO_DEV_NULL}")
       wait_mysql_start
@@ -44,12 +39,6 @@ class MysqlServer
 
     def clean
       stop
-
-      if ENV['SKIP_CLEAN_DATA'] != '1'
-        sudo = ENV['CLEAN_DATA_AS_ROOT'] == '1' ? 'sudo' : ''
-        system("docker-compose rm -f mysql_for_ar_mysql_reconn #{REDIRECT_TO_DEV_NULL}")
-        system("#{sudo} rm -rf /tmp/mysql_for_ar_mysql_reconn")
-      end
     end
 
     def reset
