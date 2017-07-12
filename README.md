@@ -110,8 +110,6 @@ It requires the following:
 ```sh
 bundle install
 bundle exec appraisal install
-docker-compose up -d
-# MYSQL_PWD=password mysqladmin -u root -h 127.0.0.1 ping
 bundle exec appraisal activerecord-4.2 rake
 bundle exec appraisal activerecord-5.0 rake
 ```
