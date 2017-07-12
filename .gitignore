@@ -18,3 +18,4 @@ tmp
 test.rb
 *.bak
 *.swp
+/gemfiles/*.lock
