@@ -112,6 +112,7 @@ module Activerecord::Mysql::Reconnect
       block     = opts.fetch(:proc)
       on_error  = opts[:on_error]
       conn      = opts[:connection]
+      sql       = opts[:sql]
       tries     = self.execution_tries
       retval    = nil
 
@@ -124,17 +125,14 @@ module Activerecord::Mysql::Reconnect
             on_error.call if on_error
             wait = self.execution_retry_wait * n
 
-            opt_msgs = ["cause: #{e} [#{e.class}]"]
-
-            if conn
-              conn_info = connection_info(conn)
-              opt_msgs << 'connection: ' + [:host, :database, :username].map {|k| "#{k}=#{conn_info[k]}" }.join(";")
-            end
-
-            logger.warn("MySQL server has gone away. Trying to reconnect in #{wait.to_f} seconds. (#{opt_msgs.join(', ')})")
+            logger.warn("MySQL server has gone away. Trying to reconnect in #{wait.to_f} seconds. (#{build_error_message(e, sql, conn)})")
             sleep(wait)
             next
           else
+            if enable_retry and n > 1
+              logger.warn("Query retry failed. (#{build_error_message(e, sql, conn)})")
+            end
+
             raise e
           end
         end
@@ -226,8 +224,6 @@ module Activerecord::Mysql::Reconnect
       return conn_info
     end
 
-    private
-
     def create_pattern_match_regex(str)
       ss = StringScanner.new(str)
       buf = []
@@ -247,6 +243,18 @@ module Activerecord::Mysql::Reconnect
       end
 
       /\A#{buf.join}\z/
+    end
+
+    def build_error_message(e, sql, conn)
+      msgs = {cause: "#{e.message} [#{e.class}]"}
+      msgs[:sql] = sql if sql
+
+      if conn
+        conn_info = connection_info(conn)
+        msgs[:connection] = [:host, :database, :username].map {|k| "#{k}=#{conn_info[k]}" }.join(";")
+      end
+
+      msgs.map {|k, v| "#{k}: #{v}" }.join(", ")
     end
   end # end of class methods
 end

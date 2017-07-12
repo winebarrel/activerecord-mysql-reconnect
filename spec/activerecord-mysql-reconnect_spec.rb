@@ -445,4 +445,55 @@ describe 'activerecord-mysql-reconnect' do
       end
     end
   end
+
+  context "when retry with warning" do
+    let(:warning_template) do
+      "%s (cause: %s, sql: SELECT `employees`.* FROM `employees`, connection: host=127.0.0.1;database=employees;username=root)"
+    end
+
+    before do
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('Lost connection to MySQL server during query')
+    end
+
+    context "when retry failed " do
+      specify do
+        expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
+          "MySQL server has gone away. Trying to reconnect in 0.5 seconds.",
+          "Mysql2::Error: Lost connection to MySQL server during query: SELECT `employees`.* FROM `employees` [ActiveRecord::StatementInvalid]",
+        ])
+
+        (1.0..4.5).step(0.5).each do |sec|
+          expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
+            "MySQL server has gone away. Trying to reconnect in #{sec} seconds.",
+            "Lost connection to MySQL server during query [Mysql2::Error]",
+          ])
+        end
+
+        expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
+          "Query retry failed.",
+          "Lost connection to MySQL server during query [Mysql2::Error]",
+        ])
+
+        expect(Employee.all.length).to eq 1000
+        MysqlServer.stop
+
+        expect {
+          Employee.all.length
+        }.to raise_error(Mysql2::Error)
+      end
+    end
+
+    context "when retry succeeded" do
+      specify do
+        expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
+          "MySQL server has gone away. Trying to reconnect in 0.5 seconds.",
+          "Mysql2::Error: Lost connection to MySQL server during query: SELECT `employees`.* FROM `employees` [ActiveRecord::StatementInvalid]",
+        ])
+
+        expect(Employee.all.length).to eq 1000
+        MysqlServer.restart
+        expect(Employee.all.length).to eq 1000
+      end
+    end
+  end
 end
