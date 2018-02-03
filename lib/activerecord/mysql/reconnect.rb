@@ -45,6 +45,7 @@ module Activerecord::Mysql::Reconnect
     'Unknown MySQL server host', # For DNS blips
     "Lost connection to MySQL server at 'reading initial communication packet'",
     "MySQL client is not connected",
+    'Connection was killed',
   ]
 
   HANDLE_ERROR_MESSAGES = HANDLE_R_ERROR_MESSAGES + HANDLE_RW_ERROR_MESSAGES
