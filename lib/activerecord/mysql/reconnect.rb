@@ -46,7 +46,7 @@ module Activerecord::Mysql::Reconnect
     "Lost connection to MySQL server at 'reading initial communication packet'",
     "MySQL client is not connected",
     'Connection was killed',
-    'SSL connection error: protocol version mismatch' # can indicate an error opening an SSL connection which works on retry
+    'SSL connection error: protocol version mismatch', # can indicate an error opening an SSL connection which works on retry
     'Errno::' # broadly cover any case where Errno is set
   ]
 
