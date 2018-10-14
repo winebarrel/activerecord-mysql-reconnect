@@ -2,10 +2,9 @@ dist: trusty
 sudo: required
 language: ruby
 rvm:
-  - 2.1.9
-  - 2.2.6
-  - 2.3.4
-  - 2.4.1
+  - 2.3.6
+  - 2.4.4
+  - 2.5.1
 before_install:
   - docker-compose up -d
   - function mysql_ping { mysqladmin -u root -h 127.0.0.1 -ppassword ping > /dev/null 2> /dev/null; }
@@ -18,16 +17,11 @@ gemfile:
   - gemfiles/activerecord_4.2.gemfile
   - gemfiles/activerecord_5.0.gemfile
   - gemfiles/activerecord_5.1.gemfile
+  - gemfiles/activerecord_5.2.gemfile
 env:
   matrix:
     - ACTIVERECORD_MYSQL_RECONNECT_ENGINE=InnoDB
     - ACTIVERECORD_MYSQL_RECONNECT_ENGINE=MyISAM
-matrix:
-  exclude:
-    - rvm: 2.1.9
-      gemfile: gemfiles/activerecord_5.0.gemfile
-    - rvm: 2.1.9
-      gemfile: gemfiles/activerecord_5.1.gemfile
 addons:
   apt:
     packages:
