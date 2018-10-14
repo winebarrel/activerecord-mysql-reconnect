@@ -500,4 +500,31 @@ describe 'activerecord-mysql-reconnect' do
       end
     end
   end
+
+  # NOTE: The following test need to execute at the last
+  context "when the custom error is happened" do
+    before do
+      allow_any_instance_of(Mysql2::Error).to receive(:message).and_return('ZapZapZap')
+      Activerecord::Mysql::Reconnect.handle_rw_error_messages.update(zapzapzap: 'ZapZapZap')
+    end
+
+    specify do
+      th = thread_start {
+        emp = Employee.create(
+          :emp_no     => 9999,
+          :birth_date => Time.now,
+          # wait 10 sec
+          :first_name => "' + sleep(10) + '",
+          :last_name  => 'Tiger',
+          :hire_date  => Time.now
+        )
+
+        expect(emp.id).to eq 1001
+        expect(emp.emp_no).to eq 9999
+      }
+
+      MysqlServer.restart
+      th.join
+    end
+  end
 end

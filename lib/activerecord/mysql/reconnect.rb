@@ -29,26 +29,24 @@ module Activerecord::Mysql::Reconnect
     Mysql2::Error,
   ]
 
-  HANDLE_R_ERROR_MESSAGES = [
-    'Lost connection to MySQL server during query',
-  ]
+  @@handle_r_error_messages = {
+    lost_connection: 'Lost connection to MySQL server during query',
+  }
 
-  HANDLE_RW_ERROR_MESSAGES = [
-    'MySQL server has gone away',
-    'Server shutdown in progress',
-    'closed MySQL connection',
-    "Can't connect to MySQL server",
-    'Query execution was interrupted',
-    'Access denied for user',
-    'The MySQL server is running with the --read-only option',
-    "Can't connect to local MySQL server", # When running in local sandbox, or using a socket file
-    'Unknown MySQL server host', # For DNS blips
-    "Lost connection to MySQL server at 'reading initial communication packet'",
-    "MySQL client is not connected",
-    'Connection was killed',
-  ]
-
-  HANDLE_ERROR_MESSAGES = HANDLE_R_ERROR_MESSAGES + HANDLE_RW_ERROR_MESSAGES
+  @@handle_rw_error_messages = {
+    gone_away: 'MySQL server has gone away',
+    server_shutdown: 'Server shutdown in progress',
+    closed_connection: 'closed MySQL connection',
+    cannot_connect: "Can't connect to MySQL server",
+    interrupted: 'Query execution was interrupted',
+    access_denied: 'Access denied for user',
+    read_only: 'The MySQL server is running with the --read-only option',
+    cannot_connect_to_local: "Can't connect to local MySQL server", # When running in local sandbox, or using a socket file
+    unknown_host: 'Unknown MySQL server host', # For DNS blips
+    lost_connection: "Lost connection to MySQL server at 'reading initial communication packet'",
+    not_connected: "MySQL client is not connected",
+    killed: 'Connection was killed',
+  }
 
   READ_SQL_REGEXP = /\A\s*(?:SELECT|SHOW|SET)\b/i
 
@@ -56,6 +54,14 @@ module Activerecord::Mysql::Reconnect
   DEFAULT_RETRY_MODE = :r
 
   class << self
+    def handle_r_error_messages
+      @@handle_r_error_messages
+    end
+
+    def handle_rw_error_messages
+      @@handle_rw_error_messages
+    end
+
     def execution_tries
       ActiveRecord::Base.execution_tries || DEFAULT_EXECUTION_TRIES
     end
@@ -196,7 +202,7 @@ module Activerecord::Mysql::Reconnect
         return false
       end
 
-      unless Regexp.union(HANDLE_ERROR_MESSAGES) =~ e.message
+      unless Regexp.union(@@handle_r_error_messages.values + @@handle_rw_error_messages.values) =~ e.message
         return false
       end
 
@@ -205,7 +211,7 @@ module Activerecord::Mysql::Reconnect
           return false
         end
 
-        if retry_mode != :force and Regexp.union(HANDLE_R_ERROR_MESSAGES) =~ e.message
+        if retry_mode != :force and Regexp.union(@@handle_r_error_messages.values) =~ e.message
           return false
         end
       end
