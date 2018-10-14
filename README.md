@@ -66,6 +66,15 @@ ActiveRecord::Base.without_retry do
 end
 ```
 
+### Add a retry error message
+
+```ruby
+Activerecord::Mysql::Reconnect.handle_rw_error_messages.update(
+  zapzapzap: 'ZapZapZap'
+)
+# or `Activerecord::Mysql::Reconnect.handle_r_error_messages...`
+```
+
 ## Use on rails
 
 ### Gemfile

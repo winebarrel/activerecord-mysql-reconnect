@@ -54,6 +54,14 @@ module Activerecord::Mysql::Reconnect
   DEFAULT_RETRY_MODE = :r
 
   class << self
+    def handle_r_error_messages
+      @@handle_r_error_messages
+    end
+
+    def handle_rw_error_messages
+      @@handle_rw_error_messages
+    end
+
     def execution_tries
       ActiveRecord::Base.execution_tries || DEFAULT_EXECUTION_TRIES
     end
