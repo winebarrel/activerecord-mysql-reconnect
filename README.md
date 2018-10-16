@@ -109,7 +109,7 @@ ene
 * `:rw`     Retry in all SQL, but does not retry if `Lost connection` has happened in write SQL
 * `:force`  Retry in all SQL
 
-## Running tests
+## Run tests
 
 It requires the following:
 
