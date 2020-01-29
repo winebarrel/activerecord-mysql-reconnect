@@ -47,4 +47,8 @@ RSpec.configure do |config|
     MysqlServer.reset
     ActiveRecord::Base.clear_all_connections!
   end
+
+  config.expect_with :rspec do |c|
+    c.max_formatted_output_length = 999999
+  end
 end

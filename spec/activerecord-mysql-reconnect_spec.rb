@@ -461,10 +461,18 @@ describe 'activerecord-mysql-reconnect' do
 
     context "when retry failed " do
       specify do
-        expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
-          "MySQL server has gone away. Trying to reconnect in 0.5 seconds.",
-          "#{mysql_error}: Lost connection to MySQL server during query: SELECT `employees`.* FROM `employees` [ActiveRecord::StatementInvalid]",
-        ])
+        if ActiveRecord::VERSION::MAJOR < 6
+          expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
+            "MySQL server has gone away. Trying to reconnect in 0.5 seconds.",
+            "#{mysql_error}: Lost connection to MySQL server during query: SELECT `employees`.* FROM `employees` [ActiveRecord::StatementInvalid]",
+          ])
+        else
+          expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
+            "MySQL server has gone away. Trying to reconnect in 0.5 seconds.",
+            "#{mysql_error}: Lost connection to MySQL server during query [ActiveRecord::StatementInvalid]",
+          ])
+        end
+
 
         (1.0..4.5).step(0.5).each do |sec|
           expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
@@ -489,10 +497,17 @@ describe 'activerecord-mysql-reconnect' do
 
     context "when retry succeeded" do
       specify do
-        expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
-          "MySQL server has gone away. Trying to reconnect in 0.5 seconds.",
-          "#{mysql_error}: Lost connection to MySQL server during query: SELECT `employees`.* FROM `employees` [ActiveRecord::StatementInvalid]",
-        ])
+        if ActiveRecord::VERSION::MAJOR < 6
+          expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
+            "MySQL server has gone away. Trying to reconnect in 0.5 seconds.",
+            "#{mysql_error}: Lost connection to MySQL server during query: SELECT `employees`.* FROM `employees` [ActiveRecord::StatementInvalid]",
+          ])
+        else
+          expect(ActiveRecord::Base.logger).to receive(:warn).with(warning_template % [
+            "MySQL server has gone away. Trying to reconnect in 0.5 seconds.",
+            "#{mysql_error}: Lost connection to MySQL server during query [ActiveRecord::StatementInvalid]",
+          ])
+        end
 
         expect(Employee.all.length).to eq 1000
         MysqlServer.restart
