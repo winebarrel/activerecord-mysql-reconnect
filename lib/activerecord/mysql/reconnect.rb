@@ -87,6 +87,14 @@ module Activerecord::Mysql::Reconnect
       @activerecord_mysql_reconnect_retry_mode || DEFAULT_RETRY_MODE
     end
 
+    def before_retry=(v)
+      @activerecord_mysql_reconnect_before_retry = v
+    end
+
+    def before_retry
+      @activerecord_mysql_reconnect_before_retry
+    end
+
     def retry_databases=(v)
       v ||= []
 
@@ -116,12 +124,13 @@ module Activerecord::Mysql::Reconnect
     end
 
     def retryable(opts)
-      block     = opts.fetch(:proc)
-      on_error  = opts[:on_error]
-      conn      = opts[:connection]
-      sql       = opts[:sql]
-      tries     = self.execution_tries
-      retval    = nil
+      block        = opts.fetch(:proc)
+      on_error     = opts[:on_error]
+      conn         = opts[:connection]
+      sql          = opts[:sql]
+      tries        = self.execution_tries
+      before_retry = self.before_retry
+      retval       = nil
 
       retryable_loop(tries) do |n|
         begin
@@ -130,6 +139,12 @@ module Activerecord::Mysql::Reconnect
         rescue => e
           if enable_retry and (tries.zero? or n < tries) and should_handle?(e, opts)
             on_error.call if on_error
+
+            if before_retry.is_a?(Proc)
+              logger.warn("MySQL server has gone away. Running before retry proc")
+              before_retry.call(e, sql, conn)
+            end
+
             wait = self.execution_retry_wait * n
 
             logger.warn("MySQL server has gone away. Trying to reconnect in #{wait.to_f} seconds. (#{build_error_message(e, sql, conn)})")
